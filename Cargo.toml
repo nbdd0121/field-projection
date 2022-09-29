@@ -1,0 +1,23 @@
+[package]
+name = "field-projection"
+version = "0.1.0"
+authors = ["Gary Guo <gary@garyguo.net>"]
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/nbdd0121/field-projection"
+keywords = ["macros", "attribute"]
+categories = ["no-std", "rust-patterns"]
+description = """
+Field projection experiment
+"""
+
+[workspace]
+members = ["field-projection-internal"]
+
+[dependencies]
+field-projection-internal = { version = "=0.1.0",  path = "field-projection-internal" }
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu"]
+rustdoc-args = ["--cfg", "doc_cfg"]
