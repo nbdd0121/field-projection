@@ -4,6 +4,7 @@
 #![warn(unsafe_op_in_unsafe_fn)]
 
 use core::marker::PhantomData;
+use core::mem::MaybeUninit;
 
 pub use field_projection_internal::Field;
 
@@ -16,7 +17,7 @@ pub use field_projection_internal::Field;
 ///
 /// This type is fundamental so that downstream crates can implement trait for it.
 #[fundamental]
-pub struct FieldOffset<T: ?Sized, const N: u64>(PhantomData<*mut T>);
+pub struct FieldOffset<T: ?Sized, const N: u64>(PhantomData<T>);
 
 pub use const_fnv1a_hash::fnv1a_hash_str_64 as field_name_hash;
 
@@ -35,4 +36,56 @@ pub unsafe trait Field {
 
     /// Adjust the pointer from the containing struct to the field.
     fn map(ptr: *const Self::Base) -> *const Self::Type;
+}
+
+/// Trait for a wrapper type that can be projected to a field.
+///
+/// `F` is a descriptor of a field (`FieldOffset` with some generic parameters).
+pub trait Projectable<F: Field> {
+    /// Type of the wrapped projected field.
+    type Target;
+
+    /// Project the field.
+    fn project(self) -> Self::Target;
+}
+
+impl<'a, T, F> Projectable<F> for &'a MaybeUninit<T>
+where
+    F: Field<Base = T>,
+    F::Type: Sized + 'a,
+{
+    type Target = &'a MaybeUninit<F::Type>;
+
+    fn project(self) -> Self::Target {
+        unsafe {
+            let ptr: *const T = self.as_ptr();
+            let ptr = F::map(ptr);
+            &*ptr.cast::<MaybeUninit<F::Type>>()
+        }
+    }
+}
+
+impl<'a, T, F> Projectable<F> for &'a mut MaybeUninit<T>
+where
+    F: Field<Base = T>,
+    F::Type: Sized + 'a,
+{
+    type Target = &'a mut MaybeUninit<F::Type>;
+
+    fn project(self) -> Self::Target {
+        unsafe {
+            let ptr: *const T = self.as_mut_ptr();
+            let ptr = F::map(ptr);
+            &mut *ptr.cast::<MaybeUninit<F::Type>>().cast_mut()
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! project {
+    ($a:expr => $b:ident) => {
+        $crate::Projectable::<
+            $crate::FieldOffset<_, { $crate::field_name_hash(core::stringify!($b)) }>,
+        >::project($a)
+    };
 }
