@@ -16,6 +16,7 @@ members = ["field-projection-internal"]
 
 [dependencies]
 field-projection-internal = { version = "=0.1.0",  path = "field-projection-internal" }
+const-fnv1a-hash = "1.1"
 
 [package.metadata.docs.rs]
 all-features = true

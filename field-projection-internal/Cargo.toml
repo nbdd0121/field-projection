@@ -16,3 +16,4 @@ proc_macro = true
 syn = { version = "1.0", features = ["full", "visit", "visit-mut"] }
 quote = "1.0"
 proc-macro2 = "1.0"
+const-fnv1a-hash = "1.1"
