@@ -40,7 +40,10 @@ pub unsafe trait Field {
     const NAME: &'static str;
 
     /// Adjust the pointer from the containing struct to the field.
-    fn map(ptr: *const Self::Base) -> *const Self::Type;
+    ///
+    /// # Safety
+    /// `ptr` must be a non-null and aligned pointer to `Self::Base`.
+    unsafe fn map(ptr: *const Self::Base) -> *const Self::Type;
 }
 
 /// Trait for a wrapper type that can be projected to a field.

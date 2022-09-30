@@ -98,7 +98,7 @@ pub fn field(input: TokenStream) -> Result<TokenStream> {
                 type Type = #ty;
                 const NAME: &'static str = #field_name_literal;
 
-                fn map(ptr: *const Self::Base) -> *const Self::Type {
+                unsafe fn map(ptr: *const Self::Base) -> *const Self::Type {
                     unsafe { core::ptr::addr_of!((*ptr).#field_name_current) }
                 }
             }
