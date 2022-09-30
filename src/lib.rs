@@ -6,7 +6,10 @@
 use core::marker::PhantomData;
 use core::mem::MaybeUninit;
 
-pub use field_projection_internal::Field;
+mod pin;
+
+pub use field_projection_internal::{Field, PinField};
+pub use pin::PinField;
 
 /// Representation of a possible field of a specific name of a struct.
 ///
