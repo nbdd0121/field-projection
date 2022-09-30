@@ -10,7 +10,7 @@ use core::pin::Pin;
 /// This trait should not be implemented manually; instead, use the `#[derive(PinField)]` instead.
 pub unsafe trait PinField: Field {
     /// The type when this field is projected from a `Pin<&mut Self::Base>`.
-    type PinWrapper<'a>;
+    type PinWrapper<'a, T: ?Sized + 'a>;
 }
 
 impl<'a, T, F> Projectable<F> for Pin<&'a mut T>
@@ -18,7 +18,7 @@ where
     F: PinField<Base = T>,
     F::Type: 'a,
 {
-    type Target = F::PinWrapper<'a>;
+    type Target = F::PinWrapper<'a, F::Type>;
 
     fn project(self) -> Self::Target {
         // SAFETY: This pointer will not be moved out, and the resulting projection will be wrapped

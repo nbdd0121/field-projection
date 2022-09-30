@@ -93,9 +93,9 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
         let field_name_hash = field_name_hash(&field_name_str);
 
         let wrapper_ty = if has_pin[i] {
-            quote_spanned!(mixed_site => Pin<&'a mut #ty>)
+            quote_spanned!(mixed_site => Pin<&'__field_projection mut __FieldProjection>)
         } else {
-            quote_spanned!(mixed_site => &'a mut #ty)
+            quote_spanned!(mixed_site => &'__field_projection mut __FieldProjection)
         };
 
         builder.push(quote_spanned! {mixed_site =>
@@ -105,7 +105,7 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
                 #ident<#(#ty_generics,)*>, #field_name_hash
             > #where_clause
             {
-                type PinWrapper<'a> = #wrapper_ty;
+                type PinWrapper<'__field_projection, __FieldProjection: ?Sized + '__field_projection> = #wrapper_ty;
             }
         })
     }
