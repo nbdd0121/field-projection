@@ -8,8 +8,8 @@ use core::mem::MaybeUninit;
 
 mod pin;
 
-pub use field_projection_internal::{Field, PinField};
-pub use pin::PinField;
+pub use field_projection_internal::*;
+pub use pin::*;
 
 /// Representation of a possible field of a specific name of a struct.
 ///
@@ -62,6 +62,7 @@ where
     type Target = &'a MaybeUninit<F::Type>;
 
     fn project(self) -> Self::Target {
+        // SAFETY: Projecting through trusted `F::map`.
         unsafe { &*F::map(self.as_ptr()).cast::<MaybeUninit<F::Type>>() }
     }
 }
@@ -74,6 +75,7 @@ where
     type Target = &'a mut MaybeUninit<F::Type>;
 
     fn project(self) -> Self::Target {
+        // SAFETY: Projecting through trusted `F::map`.
         unsafe {
             &mut *F::map(self.as_mut_ptr())
                 .cast_mut()

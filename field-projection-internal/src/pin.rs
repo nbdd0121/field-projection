@@ -1,6 +1,6 @@
 use const_fnv1a_hash::fnv1a_hash_str_64 as field_name_hash;
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     punctuated::Punctuated, Data, DeriveInput, Error, Fields, GenericParam, Generics, Member,
     Result,
@@ -81,7 +81,9 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
         .collect();
 
     let mixed_site = Span::mixed_site();
+
     let mut builder = Vec::new();
+    let mut unpin_guard_builder = Vec::new();
 
     for i in 0..field_name.len() {
         let field_name_current = &field_name[i];
@@ -107,8 +109,39 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
             {
                 type PinWrapper<'__field_projection, __FieldProjection: ?Sized + '__field_projection> = #wrapper_ty;
             }
-        })
+        });
+
+        let field_idx = format_ident!("__field{}", i);
+        if has_pin[i] {
+            unpin_guard_builder.push(quote_spanned! {mixed_site =>
+                #field_idx: #ty,
+            });
+        } else {
+            unpin_guard_builder.push(quote_spanned! {mixed_site =>
+                #field_idx: field_projection::AlwaysUnpin<#ty>,
+            });
+        }
     }
+
+    let where_clause_nonoptional = if where_clause.is_some() {
+        quote!(#where_clause)
+    } else {
+        quote!(where)
+    };
+    let guard = quote_spanned! {mixed_site => const _: () = {
+        struct __UnpinHelper<#(#generics,)*> #where_clause {
+            #(#unpin_guard_builder)*
+        }
+
+        impl<#(#generics,)*> core::marker::Unpin for #ident<#(#ty_generics,)*>
+        #where_clause_nonoptional __UnpinHelper<#(#ty_generics,)*>: core::marker::Unpin {}
+
+        trait MustNotImplDrop {}
+        impl<T: core::ops::Drop> MustNotImplDrop for T {}
+        impl<#(#generics,)*> MustNotImplDrop for #ident<#(#ty_generics,)*> #where_clause {}
+    };};
+
+    builder.push(guard);
 
     let gen = quote!(#(#builder)*);
     Ok(gen)

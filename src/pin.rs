@@ -33,3 +33,7 @@ where
         unsafe { core::mem::transmute_copy(&ptr) }
     }
 }
+
+#[doc(hidden)]
+pub struct AlwaysUnpin<T>(T);
+impl<T> Unpin for AlwaysUnpin<T> {}
