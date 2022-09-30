@@ -31,7 +31,7 @@ pub fn field(input: TokenStream) -> Result<TokenStream> {
         }
     };
 
-    let mut fields = match data.fields {
+    let fields = match data.fields {
         Fields::Named(v) => v.named,
         Fields::Unnamed(v) => v.unnamed,
         Fields::Unit => Punctuated::new(),

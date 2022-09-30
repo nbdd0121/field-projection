@@ -26,6 +26,8 @@ pub use const_fnv1a_hash::fnv1a_hash_str_64 as field_name_hash;
 /// # Safety
 /// The field must represent a field named `NAME` in a type `Base` that has the type `Type`.
 /// The `map` function must be implemented such that it returns a pointer to the field.
+///
+/// This trait should not be implemented manually; instead, use the `#[derive(Field)]` instead.
 pub unsafe trait Field {
     /// The type that contains the field.
     type Base: ?Sized;
@@ -57,11 +59,7 @@ where
     type Target = &'a MaybeUninit<F::Type>;
 
     fn project(self) -> Self::Target {
-        unsafe {
-            let ptr: *const T = self.as_ptr();
-            let ptr = F::map(ptr);
-            &*ptr.cast::<MaybeUninit<F::Type>>()
-        }
+        unsafe { &*F::map(self.as_ptr()).cast::<MaybeUninit<F::Type>>() }
     }
 }
 
@@ -74,9 +72,9 @@ where
 
     fn project(self) -> Self::Target {
         unsafe {
-            let ptr: *const T = self.as_mut_ptr();
-            let ptr = F::map(ptr);
-            &mut *ptr.cast::<MaybeUninit<F::Type>>().cast_mut()
+            &mut *F::map(self.as_mut_ptr())
+                .cast_mut()
+                .cast::<MaybeUninit<F::Type>>()
         }
     }
 }
