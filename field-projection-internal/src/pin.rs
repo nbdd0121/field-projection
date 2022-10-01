@@ -95,7 +95,7 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
         let field_name_hash = field_name_hash(&field_name_str);
 
         let wrapper_ty = if has_pin[i] {
-            quote_spanned!(mixed_site => Pin<&'__field_projection mut __FieldProjection>)
+            quote_spanned!(mixed_site => core::pin::Pin<&'__field_projection mut __FieldProjection>)
         } else {
             quote_spanned!(mixed_site => &'__field_projection mut __FieldProjection)
         };
