@@ -129,12 +129,16 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
         quote!(where)
     };
     let guard = quote_spanned! {mixed_site => const _: () = {
-        struct __UnpinHelper<#(#generics,)*> #where_clause {
+        struct __UnpinHelper<'__dummy_lifetime, #(#generics,)*> #where_clause {
+            __dummy_field: core::marker::PhantomData<&'__dummy_lifetime ()>,
             #(#unpin_guard_builder)*
         }
 
-        impl<#(#generics,)*> core::marker::Unpin for #ident<#(#ty_generics,)*>
-        #where_clause_nonoptional __UnpinHelper<#(#ty_generics,)*>: core::marker::Unpin {}
+        impl<
+            '__dummy_lifetime, #(#generics,)*
+        > core::marker::Unpin for #ident<#(#ty_generics,)*>
+            #where_clause_nonoptional
+            __UnpinHelper<'__dummy_lifetime, #(#ty_generics,)*>: core::marker::Unpin {}
 
         trait MustNotImplDrop {}
         impl<T: core::ops::Drop> MustNotImplDrop for T {}
