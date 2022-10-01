@@ -100,6 +100,12 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
             quote_spanned!(mixed_site => &'__field_projection mut __FieldProjection)
         };
 
+        let wrapper_maybe_uninit_ty = if has_pin[i] {
+            quote_spanned!(mixed_site => core::pin::Pin<&'__field_projection mut core::mem::MaybeUninit<__FieldProjection>>)
+        } else {
+            quote_spanned!(mixed_site => &'__field_projection mut core::mem::MaybeUninit<__FieldProjection>)
+        };
+
         builder.push(quote_spanned! {mixed_site =>
             unsafe impl<
                 #(#generics,)*
@@ -108,6 +114,7 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
             > #where_clause
             {
                 type PinWrapper<'__field_projection, __FieldProjection: ?Sized + '__field_projection> = #wrapper_ty;
+                type PinMaybeUninitWrapper<'__field_projection, __FieldProjection: '__field_projection> = #wrapper_maybe_uninit_ty;
             }
         });
 

@@ -1,6 +1,6 @@
 use const_fnv1a_hash::fnv1a_hash_str_64 as field_name_hash;
 use proc_macro2::{Literal, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::{
     punctuated::Punctuated, Data, DeriveInput, Error, Fields, GenericParam, Generics, Member,
     Result,
@@ -105,6 +105,11 @@ pub fn field(input: TokenStream) -> Result<TokenStream> {
         })
     }
 
-    let gen = quote!(#(#builder)*);
+    let gen = quote_spanned! {mixed_site =>
+        impl<#(#generics,)*> field_projection::HasField for #ident<#(#ty_generics,)*>
+            #where_clause
+        {}
+        #(#builder)*
+    };
     Ok(gen)
 }

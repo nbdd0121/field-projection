@@ -1,5 +1,6 @@
 use crate::*;
 use core::pin::Pin;
+use core::mem::MaybeUninit;
 
 /// Additional information on a field of a struct regarding to pinning.
 ///
@@ -11,12 +12,16 @@ use core::pin::Pin;
 pub unsafe trait PinField: Field {
     /// The type when this field is projected from a `Pin<&mut Self::Base>`.
     type PinWrapper<'a, T: ?Sized + 'a>;
+
+    /// The type when this field is projected from a `Pin<&mut MaybeUninit<Self::Base>>`.
+    type PinMaybeUninitWrapper<'a, T: 'a>;
 }
 
 impl<'a, T, F> Projectable<F> for Pin<&'a mut T>
 where
     F: PinField<Base = T>,
     F::Type: 'a,
+    T: HasField,
 {
     type Target = F::PinWrapper<'a, F::Type>;
 
@@ -33,6 +38,24 @@ where
         unsafe { core::mem::transmute_copy(&ptr) }
     }
 }
+
+impl<'a, T, F> Projectable<F> for Pin<&'a mut MaybeUninit<T>>
+where
+    F: PinField<Base = T>,
+    F::Type: Sized + 'a,
+{
+    type Target = F::PinMaybeUninitWrapper<'a, F::Type>;
+
+    fn project(self) -> Self::Target {
+        // SAFETY: This pointer will not be moved out, and the resulting projection will be wrapped
+        // with `Pin` back if the field is pinned.
+        let inner = unsafe { Self::into_inner_unchecked(self) };
+        // SAFETY: Project the pointer through raw pointer.
+        let ptr = unsafe { &mut *F::map(inner.as_mut_ptr()).cast_mut() };
+        unsafe { core::mem::transmute_copy(&ptr) }
+    }
+}
+
 
 #[doc(hidden)]
 pub struct AlwaysUnpin<T>(T);

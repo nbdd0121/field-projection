@@ -46,6 +46,9 @@ pub unsafe trait Field {
     unsafe fn map(ptr: *const Self::Base) -> *const Self::Type;
 }
 
+/// Implemented for types that has field and therefore can be projected.
+pub trait HasField {}
+
 /// Trait for a wrapper type that can be projected to a field.
 ///
 /// `F` is a descriptor of a field (`FieldOffset` with some generic parameters).
