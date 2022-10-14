@@ -9,17 +9,17 @@ use core::mem::MaybeUninit;
 /// it should be `Pin<&mut Self::Type>`, otherwise it should be `&mut Self::Type`.
 ///
 /// This trait should not be implemented manually; instead, use the `#[derive(PinField)]` instead.
-pub unsafe trait PinField: Field {
+pub unsafe trait PinField<T>: Field<T> {
     /// The type when this field is projected from a `Pin<&mut Self::Base>`.
-    type PinWrapper<'a, T: ?Sized + 'a>;
+    type PinWrapper<'a, U: ?Sized + 'a>;
 
     /// The type when this field is projected from a `Pin<&mut MaybeUninit<Self::Base>>`.
-    type PinMaybeUninitWrapper<'a, T: 'a>;
+    type PinMaybeUninitWrapper<'a, U: 'a>;
 }
 
-impl<'a, T, F> Projectable<F> for Pin<&'a mut T>
+impl<'a, T, F> Projectable<T, F> for Pin<&'a mut T>
 where
-    F: PinField<Base = T>,
+    F: PinField<T>,
     F::Type: 'a,
     T: HasField,
 {
@@ -39,9 +39,9 @@ where
     }
 }
 
-impl<'a, T, F> Projectable<F> for Pin<&'a mut MaybeUninit<T>>
+impl<'a, T, F> Projectable<T, F> for Pin<&'a mut MaybeUninit<T>>
 where
-    F: PinField<Base = T>,
+    F: PinField<T>,
     F::Type: Sized + 'a,
 {
     type Target = F::PinMaybeUninitWrapper<'a, F::Type>;
