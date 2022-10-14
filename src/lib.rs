@@ -47,7 +47,19 @@ pub trait Projectable<T, F: Field<T>> {
     type Target;
 
     /// Project the field.
-    fn project(self) -> Self::Target;
+    ///
+    /// # Safety
+    /// The function must be called only if `F` is accessible with Rust privacy
+    /// rules by the caller.
+    unsafe fn project(self) -> Self::Target;
+
+    #[doc(hidden)]
+    unsafe fn project_with_check(this: Self, check: fn(&T)) -> Self::Target
+    where
+        Self: Sized,
+    {
+        unsafe { Self::project(this) }
+    }
 }
 
 impl<'a, T, F> Projectable<T, F> for &'a MaybeUninit<T>
@@ -57,7 +69,7 @@ where
 {
     type Target = &'a MaybeUninit<F::Type>;
 
-    fn project(self) -> Self::Target {
+    unsafe fn project(self) -> Self::Target {
         // SAFETY: Projecting through trusted `F::map`.
         unsafe { &*F::map(self.as_ptr()).cast::<MaybeUninit<F::Type>>() }
     }
@@ -70,7 +82,7 @@ where
 {
     type Target = &'a mut MaybeUninit<F::Type>;
 
-    fn project(self) -> Self::Target {
+    unsafe fn project(self) -> Self::Target {
         // SAFETY: Projecting through trusted `F::map`.
         unsafe {
             &mut *F::map(self.as_mut_ptr())
@@ -83,8 +95,15 @@ where
 #[macro_export]
 macro_rules! project {
     ($a:expr => $b:ident) => {
-        $crate::Projectable::<_,
-            $crate::FieldName<{ $crate::field_name_hash(core::stringify!($b)) }>,
-        >::project($a)
+        match $a {
+            __expr => unsafe {
+                $crate::Projectable::<
+                    _,
+                    $crate::FieldName<{ $crate::field_name_hash(core::stringify!($b)) }>,
+                >::project_with_check(__expr, |__check| {
+                    let _ = __check.$b;
+                })
+            },
+        }
     };
 }
