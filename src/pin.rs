@@ -20,7 +20,7 @@ where
 {
     type Target = F::PinWrapper<'a, F::Type>;
 
-    fn project(self) -> Self::Target {
+    unsafe fn project(self) -> Self::Target {
         // SAFETY: This pointer will not be moved out, and the resulting projection will be wrapped
         // with `Pin` back if the field is pinned.
         let inner = unsafe { Self::into_inner_unchecked(self) };
