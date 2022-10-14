@@ -8,14 +8,14 @@ use core::pin::Pin;
 /// it should be `Pin<&mut Self::Type>`, otherwise it should be `&mut Self::Type`.
 ///
 /// This trait should not be implemented manually; instead, use the `#[derive(PinField)]` instead.
-pub unsafe trait PinField: Field {
+pub unsafe trait PinField<T>: Field<T> {
     /// The type when this field is projected from a `Pin<&mut Self::Base>`.
-    type PinWrapper<'a, T: ?Sized + 'a>;
+    type PinWrapper<'a, U: ?Sized + 'a>;
 }
 
-impl<'a, T, F> Projectable<F> for Pin<&'a mut T>
+impl<'a, T, F> Projectable<T, F> for Pin<&'a mut T>
 where
-    F: PinField<Base = T>,
+    F: PinField<T>,
     F::Type: 'a,
 {
     type Target = F::PinWrapper<'a, F::Type>;

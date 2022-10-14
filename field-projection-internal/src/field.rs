@@ -90,15 +90,14 @@ pub fn field(input: TokenStream) -> Result<TokenStream> {
         builder.push(quote_spanned! {mixed_site =>
             unsafe impl<
                 #(#generics,)*
-            > field_projection::Field for FieldOffset<
-                #ident<#(#ty_generics,)*>, #field_name_hash
-            > #where_clause
+            > field_projection::Field<
+                #ident<#(#ty_generics,)*>
+            > for FieldName<#field_name_hash> #where_clause
             {
-                type Base = #ident<#(#ty_generics,)*>;
                 type Type = #ty;
                 const NAME: &'static str = #field_name_literal;
 
-                unsafe fn map(ptr: *const Self::Base) -> *const Self::Type {
+                unsafe fn map(ptr: *const #ident<#(#ty_generics,)*>) -> *const Self::Type {
                     unsafe { core::ptr::addr_of!((*ptr).#field_name_current) }
                 }
             }

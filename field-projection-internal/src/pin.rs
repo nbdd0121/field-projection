@@ -103,9 +103,9 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
         builder.push(quote_spanned! {mixed_site =>
             unsafe impl<
                 #(#generics,)*
-            > field_projection::PinField for FieldOffset<
-                #ident<#(#ty_generics,)*>, #field_name_hash
-            > #where_clause
+            > field_projection::PinField<
+                #ident<#(#ty_generics,)*>
+            > for FieldName<#field_name_hash> #where_clause
             {
                 type PinWrapper<'__field_projection, __FieldProjection: ?Sized + '__field_projection> = #wrapper_ty;
             }
