@@ -105,7 +105,7 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
                 #(#generics,)*
             > field_projection::PinField<
                 #ident<#(#ty_generics,)*>
-            > for FieldName<#field_name_hash> #where_clause
+            > for ::field_projection::FieldName<#field_name_hash> #where_clause
             {
                 type PinWrapper<'__field_projection, __FieldProjection: ?Sized + '__field_projection> = #wrapper_ty;
             }
@@ -118,7 +118,7 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
             });
         } else {
             unpin_guard_builder.push(quote_spanned! {mixed_site =>
-                #field_idx: field_projection::AlwaysUnpin<#ty>,
+                #field_idx: ::field_projection::AlwaysUnpin<#ty>,
             });
         }
     }

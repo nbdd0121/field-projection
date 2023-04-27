@@ -90,9 +90,9 @@ pub fn field(input: TokenStream) -> Result<TokenStream> {
         builder.push(quote_spanned! {mixed_site =>
             unsafe impl<
                 #(#generics,)*
-            > field_projection::Field<
+            > ::field_projection::Field<
                 #ident<#(#ty_generics,)*>
-            > for FieldName<#field_name_hash> #where_clause
+            > for ::field_projection::FieldName<#field_name_hash> #where_clause
             {
                 type Type = #ty;
                 const NAME: &'static str = #field_name_literal;
