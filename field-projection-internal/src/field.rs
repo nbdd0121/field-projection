@@ -92,7 +92,7 @@ pub fn field(input: TokenStream) -> Result<TokenStream> {
                 #(#generics,)*
             > ::field_projection::Field<
                 #ident<#(#ty_generics,)*>
-            > for ::field_projection::FieldName<#field_name_hash> #where_clause
+            > for ::field_projection::FieldName<#ident<#(#ty_generics,)*>, #field_name_hash> #where_clause
             {
                 type Type = #ty;
                 const NAME: &'static str = #field_name_literal;

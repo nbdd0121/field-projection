@@ -105,7 +105,7 @@ macro_rules! project {
             __expr => {
                 $crate::Projectable::<
                     _,
-                    $crate::FieldName<{ $crate::field_name_hash(core::stringify!($b)) }>,
+                    $crate::FieldName<_, { $crate::field_name_hash(core::stringify!($b)) }>,
                 >::project_with_check(
                     __expr,
                     unsafe { $crate::UnsafeToken::new() },

@@ -105,7 +105,7 @@ pub fn pin_field(input: TokenStream) -> Result<TokenStream> {
                 #(#generics,)*
             > field_projection::PinField<
                 #ident<#(#ty_generics,)*>
-            > for ::field_projection::FieldName<#field_name_hash> #where_clause
+            > for ::field_projection::FieldName<#ident<#(#ty_generics,)*>, #field_name_hash> #where_clause
             {
                 type PinWrapper<'__field_projection, __FieldProjection: ?Sized + '__field_projection> = #wrapper_ty;
             }
