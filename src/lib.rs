@@ -114,7 +114,14 @@ macro_rules! project {
                         let _ = __check.$b;
                     },
                 )
-            },
+            }
         }
+    };
+}
+
+#[macro_export]
+macro_rules! field_of {
+    ($a:ty => $b:ident) => {
+        $crate::FieldName<$a, { $crate::field_name_hash(core::stringify!($b)) }>
     };
 }
