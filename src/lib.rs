@@ -9,10 +9,19 @@ mod pin;
 pub use field_projection_internal::*;
 pub use pin::*;
 
+#[doc(hidden)]
+pub struct UnsafeToken(());
+
+impl UnsafeToken {
+    pub unsafe fn new() -> Self {
+        Self(())
+    }
+}
+
 /// Representation of a field name.
 ///
 /// A field name `x` is represented with `FieldName<{field_name_hash("x")}>`.
-pub struct FieldName<const N: u64>(());
+pub struct FieldName<Base, const N: u64>(core::marker::PhantomData<Base>);
 
 pub use const_fnv1a_hash::fnv1a_hash_str_64 as field_name_hash;
 
@@ -48,14 +57,14 @@ pub trait Projectable<T, F: Field<T>> {
     /// # Safety
     /// The function must be called only if `F` is accessible with Rust privacy
     /// rules by the caller.
-    unsafe fn project(self) -> Self::Target;
+    fn project(self, _: UnsafeToken) -> Self::Target;
 
     #[doc(hidden)]
-    unsafe fn project_with_check(this: Self, _check: fn(&T)) -> Self::Target
+    fn project_with_check(this: Self, unsafe_token: UnsafeToken, _check: fn(&T)) -> Self::Target
     where
         Self: Sized,
     {
-        unsafe { Self::project(this) }
+        Self::project(this, unsafe_token)
     }
 }
 
@@ -66,7 +75,7 @@ where
 {
     type Target = &'a MaybeUninit<F::Type>;
 
-    unsafe fn project(self) -> Self::Target {
+    fn project(self, _: UnsafeToken) -> Self::Target {
         // SAFETY: Projecting through trusted `F::map`.
         unsafe { &*F::map(self.as_ptr()).cast::<MaybeUninit<F::Type>>() }
     }
@@ -79,7 +88,7 @@ where
 {
     type Target = &'a mut MaybeUninit<F::Type>;
 
-    unsafe fn project(self) -> Self::Target {
+    fn project(self, _: UnsafeToken) -> Self::Target {
         // SAFETY: Projecting through trusted `F::map`.
         unsafe {
             &mut *F::map(self.as_mut_ptr())
@@ -93,13 +102,18 @@ where
 macro_rules! project {
     ($a:expr => $b:ident) => {
         match $a {
-            __expr => unsafe {
+            __expr => {
                 $crate::Projectable::<
                     _,
                     $crate::FieldName<{ $crate::field_name_hash(core::stringify!($b)) }>,
-                >::project_with_check(__expr, |__check| {
-                    let _ = __check.$b;
-                })
+                >::project_with_check(
+                    __expr,
+                    unsafe { $crate::UnsafeToken::new() },
+                    |__check| {
+                        // This helps to improve error message
+                        let _ = __check.$b;
+                    },
+                )
             },
         }
     };
