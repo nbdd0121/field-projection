@@ -1,11 +1,11 @@
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{ToTokens, quote, quote_spanned};
-use syn::{Expr, Member, Result, Token, parse::Parse, spanned::Spanned};
+use syn::{Ident, Member, Result, Token, parse::Parse, spanned::Spanned};
 
 pub struct Input {
     at: Token![@],
     mutability: Option<Token![mut]>,
-    base: Expr,
+    base: Ident,
     arrow: Token![->],
     field: Member,
 }
@@ -25,34 +25,7 @@ impl Parse for Input {
         let res = Self {
             at: input.parse()?,
             mutability: input.parse()?,
-            base: input.step(|cursor| {
-                let mut rest = *cursor;
-                let mut dash = None;
-                let mut toks = vec![];
-                while let Some((tt, next)) = rest.token_tree() {
-                    match &tt {
-                        TokenTree::Punct(punct) if punct.as_char() == '-' => {
-                            dash = Some(rest);
-                            rest = next;
-                            toks.push(tt);
-                        }
-                        TokenTree::Punct(punct) if dash.is_some() && punct.as_char() == '>' => {
-                            if let Some(dash) = dash {
-                                toks.pop(); // remove previously pushed `-` that's part of the arrow
-                                return Ok((syn::parse2(toks.into_iter().collect())?, dash));
-                            } else {
-                                unreachable!()
-                            }
-                        }
-                        _ => {
-                            toks.push(tt);
-                            dash = None;
-                            rest = next
-                        }
-                    }
-                }
-                Err(cursor.error("no `->` was found."))
-            })?,
+            base: input.parse()?,
             arrow: input.parse()?,
             field: input.parse()?,
         };
