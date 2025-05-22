@@ -1,0 +1,8 @@
+error[E0277]: the size for values of type `str` cannot be known at compilation time
+ --> tests/ui/limitations/no_unsized.rs:3:10
+  |
+3 | #[derive(HasFields)]
+  |          ^^^^^^^^^ doesn't have a size known at compile-time
+  |
+  = help: the trait `Sized` is not implemented for `str`
+  = note: this error originates in the macro `::core::mem::offset_of` which comes from the expansion of the derive macro `HasFields` (in Nightly builds, run with -Z macro-backtrace for more info)

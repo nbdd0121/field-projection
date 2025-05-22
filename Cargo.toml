@@ -1,8 +1,8 @@
 [package]
 name = "field-projection"
-version = "0.2.0"
-authors = ["Gary Guo <gary@garyguo.net>"]
-edition = "2021"
+version = "0.3.0"
+authors = ["Gary Guo <gary@garyguo.net>", "Benno Lossin <lossin@kernel.org>"]
+edition = "2024"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/nbdd0121/field-projection"
 keywords = ["macros", "attribute"]
@@ -12,13 +12,19 @@ Field projection experiment
 """
 
 [workspace]
-members = ["field-projection-internal"]
+members = ["internal"]
 
 [dependencies]
-field-projection-internal = { version = "=0.2.0",  path = "field-projection-internal" }
+field-projection-internal = { version = "=0.3.0",  path = "internal" }
 const-fnv1a-hash = "1.1"
 
 [package.metadata.docs.rs]
 all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
 rustdoc-args = ["--cfg", "doc_cfg"]
+
+[dev-dependencies]
+trybuild = { version = "1.0", features = ["diff"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(doc_cfg)'] }

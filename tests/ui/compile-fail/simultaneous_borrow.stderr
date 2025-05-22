@@ -1,0 +1,8 @@
+error[E0499]: cannot borrow `this.bar` as mutable more than once at a time
+  --> tests/ui/compile-fail/simultaneous_borrow.rs:21:35
+   |
+21 |         p!(@mut this->bar).bar(p!(@mut this->bar));
+   |            --------------  ---    ^^^^^^^^^^^^^^ second mutable borrow occurs here
+   |            |               |
+   |            |               first borrow later used by call
+   |            first mutable borrow occurs here
