@@ -21,7 +21,7 @@ mod rcu {
 
     impl Drop for RcuGuard {
         fn drop(&mut self) {
-            /* bindings::synchronize_rcu() */
+            /* bindings::rcu_read_unlock() */
         }
     }
 
@@ -44,7 +44,7 @@ mod rcu {
         // be dropped and is not allowed to be forgotten, so we use the pin guarantee.
         pub fn set(self: Pin<&mut Self>, new: P) -> Old<P> {
             let ptr = UnsafeCell::raw_get(self.inner.get());
-            // FIX: need to use atomic swap for this operation, so need some additional trait on P.
+            // FIX: need to use atomic write for this operation, so need some additional trait on P.
             let old = unsafe { ptr.read() };
             unsafe { ptr.write(new) };
             Old(old)
