@@ -7,8 +7,7 @@ use crate::{
     ops::{Project, ProjectMut, Projectable, SafeProject},
 };
 
-pub use ::field_projection_internal::HasFields;
-pub use ::field_projection_internal::p;
+pub use ::field_projection_internal::{HasFields, p, start_proj};
 
 #[macro_export]
 macro_rules! field_of {
@@ -48,21 +47,53 @@ impl Unsafe {
 }
 
 pub unsafe trait CheckedProject<P: ProjectableExt> {
-    type Checker: ProjectionChecker<Proj = P>;
+    type RefChecker<'a>: ProjectionRefChecker<'a, Proj = P>;
+    type ValChecker: ProjectionValChecker<Proj = P>;
 }
 
-pub unsafe trait ProjectionChecker {
-    type Proj: ProjectableExt<Inner: CheckedProject<Self::Proj, Checker = Self>>;
+pub unsafe trait ProjectionRefChecker<'a> {
+    type Proj: ProjectableExt<Inner: CheckedProject<Self::Proj>>;
 
-    fn start_proj(proj: Self::Proj) -> Self;
+    unsafe fn __create(
+        proj: RawProjectedRef<'a, Self::Proj, <Self::Proj as Projectable>::Inner>,
+    ) -> Self;
 }
 
-pub fn start_proj<P>(proj: P) -> <P::Inner as CheckedProject<P>>::Checker
+pub unsafe trait ProjectionValChecker {
+    type Proj: ProjectableExt<Inner: CheckedProject<Self::Proj>>;
+
+    unsafe fn __create(
+        proj: RawProjectedVal<Self::Proj, <Self::Proj as Projectable>::Inner>,
+    ) -> Self;
+}
+
+pub fn __start_proj<'a, P>(proj: &'a P) -> <P::Inner as CheckedProject<P>>::RefChecker<'a>
 where
     P: ProjectableExt,
     P::Inner: CheckedProject<P>,
 {
-    <P::Inner as CheckedProject<P>>::Checker::start_proj(proj)
+    let ptr: *const P = proj;
+    let proj = RawProjectedRef(ptr, PhantomData);
+    unsafe { <P::Inner as CheckedProject<P>>::RefChecker::__create(proj) }
+}
+
+pub fn __start_proj_mut<'a, P>(proj: &'a mut P) -> <P::Inner as CheckedProject<P>>::RefChecker<'a>
+where
+    P: ProjectableExt,
+    P::Inner: CheckedProject<P>,
+{
+    let ptr: *mut P = proj;
+    let proj = RawProjectedRef(ptr, PhantomData);
+    unsafe { <P::Inner as CheckedProject<P>>::RefChecker::__create(proj) }
+}
+
+pub fn __start_proj_move<P>(proj: P) -> <P::Inner as CheckedProject<P>>::ValChecker
+where
+    P: ProjectableExt,
+    P::Inner: CheckedProject<P>,
+{
+    let proj = RawProjectedVal(proj, PhantomData);
+    unsafe { <P::Inner as CheckedProject<P>>::ValChecker::__create(proj) }
 }
 
 pub struct ProjectedField<P, F>(PhantomData<P>, PhantomData<F>);
@@ -82,7 +113,7 @@ where
 
     pub unsafe fn project<'a>(
         self: &'a ProjectedField<P, F>,
-        raw: RawProjectedRef<P>,
+        raw: RawProjectedPtr<P>,
     ) -> <P as Project<F>>::Output<'a>
     where
         P: Project<F>,
@@ -92,34 +123,42 @@ where
 
     pub unsafe fn project_mut<'a>(
         self: &'a mut ProjectedField<P, F>,
-        raw: RawProjectedMut<P>,
+        raw: RawProjectedPtr<P>,
     ) -> <P as ProjectMut<F>>::OutputMut<'a>
     where
         P: ProjectMut<F>,
     {
-        unsafe { <P as ProjectMut<F>>::project_mut(raw.0) }
+        unsafe { <P as ProjectMut<F>>::project_mut(raw.0.cast_mut()) }
     }
 }
 
-pub struct RawProjected<T, U: ?Sized>(T, PhantomData<U>);
+pub struct RawProjectedPtr<P>(*const P);
 
-impl<T, U: ?Sized> RawProjected<T, U> {
-    pub unsafe fn __new(value: T) -> Self
-    where
-        T: Projectable<Inner = U>,
-    {
-        Self(value, PhantomData)
+pub struct RawProjectedRef<'a, P, T: ?Sized>(*const P, PhantomData<(&'a (), &'a mut (), P, T)>);
+
+pub struct RawProjectedVal<P, T: ?Sized>(P, PhantomData<(P, T)>);
+
+pub trait RawProjectionAccess<P> {
+    fn access(&self) -> RawProjectedPtr<P>;
+    fn access_mut(&mut self) -> RawProjectedPtr<P>;
+}
+
+impl<'a, P, T: ?Sized> RawProjectionAccess<P> for RawProjectedRef<'a, P, T> {
+    fn access(&self) -> RawProjectedPtr<P> {
+        RawProjectedPtr(self.0)
     }
 
-    pub fn access(&self) -> RawProjectedRef<'_, T> {
-        RawProjectedRef(&self.0, PhantomData)
-    }
-
-    pub fn access_mut(&mut self) -> RawProjectedMut<'_, T> {
-        RawProjectedMut(&mut self.0, PhantomData)
+    fn access_mut(&mut self) -> RawProjectedPtr<P> {
+        RawProjectedPtr(self.0)
     }
 }
 
-pub struct RawProjectedRef<'a, T>(*const T, PhantomData<&'a T>);
+impl<P, T: ?Sized> RawProjectionAccess<P> for RawProjectedVal<P, T> {
+    fn access(&self) -> RawProjectedPtr<P> {
+        RawProjectedPtr(&raw const self.0)
+    }
 
-pub struct RawProjectedMut<'a, T>(*mut T, PhantomData<&'a mut T>);
+    fn access_mut(&mut self) -> RawProjectedPtr<P> {
+        RawProjectedPtr(&raw mut self.0)
+    }
+}

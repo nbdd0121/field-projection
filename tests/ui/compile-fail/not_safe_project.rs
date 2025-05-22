@@ -8,6 +8,6 @@ struct Foo {
 fn main() {
     let foo = Foo { x: 42 };
     let foo: *const Foo = &foo;
-    let foo = start_proj(foo);
+    start_proj!(foo);
     p!(@foo->x);
 }

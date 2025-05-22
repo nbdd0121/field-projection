@@ -1,11 +1,13 @@
-use proc_macro2::{TokenStream, TokenTree};
-use quote::{ToTokens, quote, quote_spanned};
-use syn::{Ident, Member, Result, Token, parse::Parse, spanned::Spanned};
+use proc_macro2::TokenStream;
+use quote::{ToTokens, format_ident, quote, quote_spanned};
+use syn::{Member, Result, Token, parse::Parse, spanned::Spanned};
+
+use crate::IdentOrSelf;
 
 pub struct Input {
     at: Token![@],
-    mutability: Option<Token![mut]>,
-    base: Ident,
+    mut_: Option<Token![mut]>,
+    base: IdentOrSelf,
     arrow: Token![->],
     field: Member,
 }
@@ -13,7 +15,7 @@ pub struct Input {
 impl ToTokens for Input {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.at.to_tokens(tokens);
-        self.mutability.to_tokens(tokens);
+        self.mut_.to_tokens(tokens);
         self.base.to_tokens(tokens);
         self.arrow.to_tokens(tokens);
         self.field.to_tokens(tokens);
@@ -24,7 +26,7 @@ impl Parse for Input {
     fn parse(input: syn::parse::ParseStream) -> Result<Self> {
         let res = Self {
             at: input.parse()?,
-            mutability: input.parse()?,
+            mut_: input.parse()?,
             base: input.parse()?,
             arrow: input.parse()?,
             field: input.parse()?,
@@ -39,20 +41,21 @@ impl Parse for Input {
 pub fn expand(input: Input) -> Result<TokenStream> {
     let span = input.span();
     let Input {
-        mutability,
-        base,
+        mut_,
+        base: IdentOrSelf(base),
         field,
         ..
     } = input;
+    let base = format_ident!("___projections_for_{base}");
     let compat = quote!(::field_projection::compat);
-    let (project, access) = match &mutability {
+    let (project, access) = match &mut_ {
         Some(_) => (quote!(project_mut), quote!(access_mut)),
         None => (quote!(project), quote!(access)),
     };
     Ok(quote_spanned! {span=>
         match (
-            &#mutability #base.#field,
-            #compat::RawProjected::#access(&#mutability #base.___projection_checker_raw),
+            &#mut_ #base.#field,
+            #compat::RawProjectionAccess::#access(&#mut_ #base.___projection_checker_raw),
         ) {
             (this, raw) => {
                 #compat::ProjectedField::safety_check(&*this).check();

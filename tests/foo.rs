@@ -22,19 +22,20 @@ struct Bar {
 #[test]
 fn maybe_uninit_projection() {
     let mut x: MaybeUninit<Bar> = MaybeUninit::uninit();
-    let mut x = start_proj(&mut x);
+    let mut x = &mut x;
+    start_proj!(mut x);
     p!(@mut x->c).write(1);
-    let foo = p!(@mut x->foo);
-    let mut foo = start_proj(foo);
+    let mut foo = p!(@mut x->foo);
+    start_proj!(mut foo);
     p!(@mut foo->a).write(1);
     p!(@mut foo->b).write(1);
 }
 
 #[allow(clippy::disallowed_names)]
-fn pin_projection(x: Pin<&mut Bar>) {
-    let mut x = start_proj(x);
-    let foo: Pin<&mut Foo> = p!(@mut x->foo);
-    let mut foo = start_proj(foo);
+fn pin_projection(mut x: Pin<&mut Bar>) {
+    start_proj!(mut x);
+    let mut foo: Pin<&mut Foo> = p!(@mut x->foo);
+    start_proj!(mut foo);
     *p!(@mut foo->a) = 1;
     let _c: &mut usize = p!(@mut x->c);
 }

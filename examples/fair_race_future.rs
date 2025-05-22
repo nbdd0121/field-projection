@@ -19,20 +19,20 @@ where
 {
     type Output = F1::Output;
 
-    fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
-        let mut this = start_proj(self);
-        let fair: &mut bool = p!(@mut this->fair);
+    fn poll(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+        start_proj!(mut self);
+        let fair: &mut bool = p!(@mut self->fair);
         *fair = !*fair;
-        match *p!(@this->fair) {
+        match *p!(@self->fair) {
             true => {
-                let f1: Pin<&mut F1> = p!(@mut this->f1);
+                let f1: Pin<&mut F1> = p!(@mut self->f1);
                 match f1.poll(cx) {
-                    Poll::Pending => p!(@mut this->f2).poll(cx),
+                    Poll::Pending => p!(@mut self->f2).poll(cx),
                     Poll::Ready(val) => Poll::Ready(val),
                 }
             }
-            false => match p!(@mut this->f2).poll(cx) {
-                Poll::Pending => p!(@mut this->f1).poll(cx),
+            false => match p!(@mut self->f2).poll(cx) {
+                Poll::Pending => p!(@mut self->f1).poll(cx),
                 Poll::Ready(val) => Poll::Ready(val),
             },
         }

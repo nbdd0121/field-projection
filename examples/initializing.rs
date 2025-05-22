@@ -13,8 +13,8 @@ struct VeryBig {
 }
 
 impl VeryBig {
-    pub fn init(this: &mut MaybeUninit<Self>) {
-        let mut this = start_proj(this);
+    pub fn init(mut this: &mut MaybeUninit<Self>) {
+        start_proj!(mut this);
         p!(@mut this->a).write(42);
         p!(@mut this->b).write(0);
         p!(@mut this->buf).as_bytes_mut().write_filled(0xef);

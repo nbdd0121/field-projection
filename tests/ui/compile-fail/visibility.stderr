@@ -1,5 +1,5 @@
 error[E0616]: field `a` of struct `Checker` is private
-  --> tests/ui/compile-fail/visibility.rs:25:26
+  --> tests/ui/compile-fail/visibility.rs:26:26
    |
-25 |     let _ = p!(@mut foo->a);
+26 |     let _ = p!(@mut foo->a);
    |                          ^ private field

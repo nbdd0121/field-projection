@@ -16,9 +16,9 @@ impl Bar {
 }
 
 impl Foo {
-    fn foo(self: Pin<&mut Self>) {
-        let mut this = start_proj(self);
-        p!(@mut this->bar).bar(p!(@mut this->bar));
+    fn foo(mut self: Pin<&mut Self>) {
+        start_proj!(mut self);
+        p!(@mut self->bar).bar(p!(@mut self->bar));
     }
 }
 

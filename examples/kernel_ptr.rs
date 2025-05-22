@@ -41,7 +41,7 @@ where
     where
         Self: 'b,
     {
-        let this = start_proj(this);
+        start_proj!(this);
         let ptr = unsafe { *p!(@this->inner) };
         Ptr {
             inner: unsafe { ptr.byte_add(F::OFFSET).cast() },

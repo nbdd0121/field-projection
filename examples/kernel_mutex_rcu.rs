@@ -143,7 +143,8 @@ struct MyDriver {
 
 impl MyDriver {
     fn flush_sensitivity<'a>(&'a self, rcu_guard: &'a RcuGuard) -> u8 {
-        let buf = start_proj(&self.buf);
+        let buf = &self.buf;
+        start_proj!(buf);
         // Here we use the special projections set up for `Mutex` with fields of type `Rcu<T>`.
         let cfg: &Rcu<Box<BufferConfig>> = p!(@buf->cfg);
         cfg.read(rcu_guard).flush_sensitivity
@@ -154,20 +155,21 @@ impl MyDriver {
      * the macro having to create a value on the stack...
 
     fn buffer_config<'a>(&'a self, rcu_guard: &'a RcuGuard) -> &'a BufferConfig {
-        let buf = start_proj(&self.buf);
+        let buf: &'a RcuMutex<Buffer> = &self.buf;
+        start_proj!(move buf);
+        //------------------- local binding introduced here
         // Here we use the special projections set up for `Mutex` with fields of type `Rcu<T>`.
         let cfg: &Rcu<Box<BufferConfig>> = p!(@buf->cfg);
-        //                                    --------- `buf.cfg` is borrowed here
         cfg.read(rcu_guard)
         //^^^^^^^^^^^^^^^^^ returns a value referencing data owned by the current function
     }
-
-    */
+     */
 
     fn set_buffer_config(&self, flush_sensitivity: u8) {
         // Our `Mutex` pins the value.
         let mut guard: Pin<RcuMutexGuard<'_, Buffer>> = self.buf.lock();
-        let mut buf = start_proj(guard.as_mut());
+        let mut buf = guard.as_mut();
+        start_proj!(mut buf);
         // We can use pin-projections since we marked `cfg` as `#[pin]`
         let cfg: Pin<&mut Rcu<Box<BufferConfig>>> = p!(@mut buf->cfg);
         cfg.set(Box::new(BufferConfig { flush_sensitivity }));

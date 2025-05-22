@@ -185,16 +185,21 @@ fn checker(
     fields: &FieldsNamed,
 ) -> TokenStream {
     let proj = format_ident!("__Proj");
-    let (_, ty_gen, _) = generics.split_for_impl();
+    let storage = format_ident!("__Storage");
     let mut generics = generics.clone();
     generics.lt_token.get_or_insert_default();
     generics.gt_token.get_or_insert_default();
+    let (_, ident_ty_gen, whr) = generics.split_for_impl();
+    let mut generics = generics.clone();
     // TODO: proper index
     generics.params.insert(
         0,
-        parse_quote!(#proj: #compat::ProjectableExt<Inner = #ident #ty_gen>),
+        parse_quote!(#proj: #compat::ProjectableExt<Inner = #ident #ident_ty_gen>),
     );
-    let field_name = fields.named.iter().map(|f| &f.ident);
+    let (checker_impl_gen, _, _) = generics.split_for_impl();
+    let mut storage_generics = generics.clone();
+    storage_generics.params.insert(0, parse_quote!(#storage));
+    let field_name = fields.named.iter().map(|f| &f.ident).collect::<Vec<_>>();
     let fields = fields.named.iter().map(
         |Field {
              vis,
@@ -202,32 +207,81 @@ fn checker(
              ..
          }| {
             quote! {
-                #vis #name: #compat::ProjectedField<#proj, #core_::marker::field_of!(#ident #ty_gen, #name)>
+                #vis #name: #compat::ProjectedField<#proj, #core_::marker::field_of!(#ident #ident_ty_gen, #name)>
             }
         },
     );
-    let (impl_gen, checker_ty_gen, whr) = generics.split_for_impl();
+    let checker_lt = quote!('___checker);
+    let (_, storage_ty_gen, _) = storage_generics.split_for_impl();
+    let mut val_generics = generics.clone();
+    val_generics.params.insert(0, parse_quote!(#checker_lt));
+    let (val_impl_gen, _, _) = val_generics.split_for_impl();
+    let storage_ty_gen = storage_ty_gen.into_token_stream();
+    let ref_ty_gen: TokenStream = storage_ty_gen
+        .clone()
+        .into_iter()
+        .map(|tt| {
+            if matches!(&tt, TokenTree::Ident(i) if i == &storage) {
+                quote!(#compat::RawProjectedRef<#checker_lt, #proj, #ident #ident_ty_gen>)
+            } else {
+                quote!(#tt)
+            }
+        })
+        .collect();
+    let val_ty_gen: TokenStream = storage_ty_gen
+        .into_iter()
+        .map(|tt| {
+            if matches!(&tt, TokenTree::Ident(i) if i == &storage) {
+                quote!(#compat::RawProjectedVal<#proj, #ident #ident_ty_gen>)
+            } else {
+                quote!(#tt)
+            }
+        })
+        .collect();
     quote! {
-        pub struct Checker #generics {
+        pub struct Checker #storage_generics {
             #(#fields,)*
-            pub ___projection_checker_raw: #compat::RawProjected<#proj, #ident #ty_gen>,
+            pub ___projection_checker_raw: #storage,
         }
 
-        unsafe impl #impl_gen #compat::ProjectionChecker for Checker #checker_ty_gen {
+        unsafe impl #val_impl_gen #compat::ProjectionRefChecker<#checker_lt> for Checker #ref_ty_gen {
             type Proj = #proj;
 
-            fn start_proj(proj: Self::Proj) -> Self {
+            unsafe fn __create(
+                proj: #compat::RawProjectedRef<
+                    #checker_lt,
+                    Self::Proj,
+                    <Self::Proj as #core_::ops::Projectable>::Inner,
+                >,
+            ) -> Self {
                 Self {
                     #(#field_name: unsafe { #compat::ProjectedField::__new() },)*
-                    ___projection_checker_raw: unsafe { #compat::RawProjected::__new(proj) },
+                    ___projection_checker_raw: proj,
                 }
             }
         }
 
-        unsafe impl #impl_gen #compat::CheckedProject<#proj> for #ident #ty_gen
+        unsafe impl #checker_impl_gen #compat::ProjectionValChecker for Checker #val_ty_gen {
+            type Proj = #proj;
+
+            unsafe fn __create(
+                proj: #compat::RawProjectedVal<
+                    Self::Proj,
+                    <Self::Proj as #core_::ops::Projectable>::Inner,
+                >,
+            ) -> Self {
+                Self {
+                    #(#field_name: unsafe { #compat::ProjectedField::__new() },)*
+                    ___projection_checker_raw: proj,
+                }
+            }
+        }
+
+        unsafe impl #checker_impl_gen #compat::CheckedProject<#proj> for #ident #ident_ty_gen
             #whr
         {
-            type Checker = Checker #checker_ty_gen;
+            type RefChecker<#checker_lt> = Checker #ref_ty_gen;
+            type ValChecker = Checker #val_ty_gen;
         }
     }
 }

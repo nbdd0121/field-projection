@@ -21,6 +21,7 @@ use foo::Foo;
 
 fn main() {
     let mut foo = Box::pin(Foo::new());
-    let mut foo = start_proj(foo.as_mut());
+    let mut foo = foo.as_mut();
+    start_proj!(mut foo);
     let _ = p!(@mut foo->a);
 }

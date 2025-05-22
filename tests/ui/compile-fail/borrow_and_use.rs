@@ -17,10 +17,10 @@ impl Bar {
 }
 
 impl Foo {
-    fn foo(self: Pin<&mut Self>) {
-        let mut this = start_proj(self);
-        let bar = p!(@this->bar);
-        let _ = p!(@mut this->bar);
+    fn foo(mut self: Pin<&mut Self>) {
+        start_proj!(mut self);
+        let bar = p!(@self->bar);
+        let _ = p!(@mut self->bar);
         println!("{bar:?}");
     }
 }

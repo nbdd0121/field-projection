@@ -16,7 +16,8 @@ impl<T> Deref for Arc<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        let inner = start_proj(self.inner);
+        let inner = self.inner;
+        start_proj!(inner);
         let value = unsafe { p!(@inner->value) };
         unsafe { value.as_ref() }
     }
