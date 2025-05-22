@@ -47,53 +47,35 @@ impl Unsafe {
 }
 
 pub unsafe trait CheckedProject<P: ProjectableExt> {
-    type RefChecker<'a>: ProjectionRefChecker<'a, Proj = P>;
-    type ValChecker: ProjectionValChecker<Proj = P>;
+    type Checker: ProjectionChecker<Proj = P>;
 }
 
-pub unsafe trait ProjectionRefChecker<'a> {
+pub unsafe trait ProjectionChecker {
     type Proj: ProjectableExt<Inner: CheckedProject<Self::Proj>>;
-
-    unsafe fn __create(
-        proj: RawProjectedRef<'a, Self::Proj, <Self::Proj as Projectable>::Inner>,
-    ) -> Self;
 }
 
-pub unsafe trait ProjectionValChecker {
-    type Proj: ProjectableExt<Inner: CheckedProject<Self::Proj>>;
-
-    unsafe fn __create(
-        proj: RawProjectedVal<Self::Proj, <Self::Proj as Projectable>::Inner>,
-    ) -> Self;
-}
-
-pub fn __start_proj<'a, P>(proj: &'a P) -> <P::Inner as CheckedProject<P>>::RefChecker<'a>
+pub fn __start_proj<P>(proj: &P) -> (&<P::Inner as CheckedProject<P>>::Checker, *const P)
 where
     P: ProjectableExt,
     P::Inner: CheckedProject<P>,
 {
-    let ptr: *const P = proj;
-    let proj = RawProjectedRef(ptr, PhantomData);
-    unsafe { <P::Inner as CheckedProject<P>>::RefChecker::__create(proj) }
+    (unsafe { core::mem::transmute(&()) }, proj)
 }
 
-pub fn __start_proj_mut<'a, P>(proj: &'a mut P) -> <P::Inner as CheckedProject<P>>::RefChecker<'a>
+pub fn __start_proj_mut<P>(proj: &mut P) -> (&mut <P::Inner as CheckedProject<P>>::Checker, *mut P)
 where
     P: ProjectableExt,
     P::Inner: CheckedProject<P>,
 {
-    let ptr: *mut P = proj;
-    let proj = RawProjectedRef(ptr, PhantomData);
-    unsafe { <P::Inner as CheckedProject<P>>::RefChecker::__create(proj) }
+    (unsafe { core::mem::transmute(&mut ()) }, proj)
 }
 
-pub fn __start_proj_move<P>(proj: P) -> <P::Inner as CheckedProject<P>>::ValChecker
+pub fn __start_proj_move<P>(proj: P) -> (<P::Inner as CheckedProject<P>>::Checker, P)
 where
     P: ProjectableExt,
     P::Inner: CheckedProject<P>,
 {
-    let proj = RawProjectedVal(proj, PhantomData);
-    unsafe { <P::Inner as CheckedProject<P>>::ValChecker::__create(proj) }
+    (unsafe { core::mem::transmute_copy(&()) }, proj)
 }
 
 pub struct ProjectedField<P, F>(PhantomData<P>, PhantomData<F>);
@@ -111,54 +93,24 @@ where
         Default::default()
     }
 
-    pub unsafe fn project<'a>(
-        self: &'a ProjectedField<P, F>,
-        raw: RawProjectedPtr<P>,
-    ) -> <P as Project<F>>::Output<'a>
+    pub unsafe fn project<'a>(&'a self, raw: *const P) -> <P as Project<F>>::Output<'a>
     where
         P: Project<F>,
     {
-        unsafe { <P as Project<F>>::project(raw.0) }
+        unsafe { <P as Project<F>>::project(raw) }
     }
 
-    pub unsafe fn project_mut<'a>(
-        self: &'a mut ProjectedField<P, F>,
-        raw: RawProjectedPtr<P>,
-    ) -> <P as ProjectMut<F>>::OutputMut<'a>
+    pub unsafe fn project_mut<'a>(&'a mut self, raw: *mut P) -> <P as ProjectMut<F>>::OutputMut<'a>
     where
         P: ProjectMut<F>,
     {
-        unsafe { <P as ProjectMut<F>>::project_mut(raw.0.cast_mut()) }
-    }
-}
-
-pub struct RawProjectedPtr<P>(*const P);
-
-pub struct RawProjectedRef<'a, P, T: ?Sized>(*const P, PhantomData<(&'a (), &'a mut (), P, T)>);
-
-pub struct RawProjectedVal<P, T: ?Sized>(P, PhantomData<(P, T)>);
-
-pub trait RawProjectionAccess<P> {
-    fn access(&self) -> RawProjectedPtr<P>;
-    fn access_mut(&mut self) -> RawProjectedPtr<P>;
-}
-
-impl<'a, P, T: ?Sized> RawProjectionAccess<P> for RawProjectedRef<'a, P, T> {
-    fn access(&self) -> RawProjectedPtr<P> {
-        RawProjectedPtr(self.0)
+        unsafe { <P as ProjectMut<F>>::project_mut(raw) }
     }
 
-    fn access_mut(&mut self) -> RawProjectedPtr<P> {
-        RawProjectedPtr(self.0)
-    }
-}
-
-impl<P, T: ?Sized> RawProjectionAccess<P> for RawProjectedVal<P, T> {
-    fn access(&self) -> RawProjectedPtr<P> {
-        RawProjectedPtr(&raw const self.0)
-    }
-
-    fn access_mut(&mut self) -> RawProjectedPtr<P> {
-        RawProjectedPtr(&raw mut self.0)
+    pub unsafe fn project_move<'a>(self, raw: *const P) -> <P as Project<F>>::Output<'a>
+    where
+        P: Project<F>,
+    {
+        unsafe { <P as Project<F>>::project(raw) }
     }
 }

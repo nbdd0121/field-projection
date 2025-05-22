@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use quote::{ToTokens, format_ident, quote};
 use syn::{Expr, Result, Token, parse::Parse};
 
 use crate::IdentOrSelf;
@@ -9,10 +9,9 @@ pub struct Input {
     name: IdentOrSelf,
 }
 
-enum ProjKind {
+pub enum ProjKind {
     Shared,
     Mut(Token![mut]),
-    #[expect(dead_code)]
     Move(Token![move]),
 }
 
@@ -24,6 +23,16 @@ impl Parse for ProjKind {
             input.parse().map(Self::Move)
         } else {
             Ok(Self::Shared)
+        }
+    }
+}
+
+impl ToTokens for ProjKind {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            ProjKind::Shared => {}
+            ProjKind::Mut(mut_) => mut_.to_tokens(tokens),
+            ProjKind::Move(move_) => move_.to_tokens(tokens),
         }
     }
 }
@@ -47,13 +56,19 @@ pub fn expand(
         name: IdentOrSelf(name),
     }: Input,
 ) -> TokenStream {
-    let projections = format_ident!("___projections_for_{name}");
+    let projections = format_ident!("___projections_checker_for_{name}");
+    let raw_ = format_ident!("___projections_raw_ptr_for_{name}");
     let (start, mut_, action) = match &kind {
-        ProjKind::Move(_) => (quote!(__start_proj_move), quote!(mut), quote!()),
+        ProjKind::Move(_) => (quote!(__start_proj_move), quote!(), quote!()),
         ProjKind::Mut(mut_) => (quote!(__start_proj_mut), quote!(#mut_), quote!(&#mut_)),
         ProjKind::Shared => (quote!(__start_proj), quote!(), quote!(&)),
     };
+    let (rest, raw_mut) = match &kind {
+        ProjKind::Move(_) => (quote!(let #raw_ = &raw mut #raw_;), quote!(mut)),
+        _ => (quote!(), quote!()),
+    };
     quote! {
-        let #mut_ #projections = ::field_projection::compat::#start(#action #name);
+        let (#mut_ #projections, #raw_mut #raw_) = ::field_projection::compat::#start(#action #name);
+        #rest
     }
 }

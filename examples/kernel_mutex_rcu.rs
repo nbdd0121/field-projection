@@ -150,20 +150,12 @@ impl MyDriver {
         cfg.read(rcu_guard).flush_sensitivity
     }
 
-    /*
-     * the following implementation of `buffer_config` *should* also compile, but doesn't due to
-     * the macro having to create a value on the stack...
-
     fn buffer_config<'a>(&'a self, rcu_guard: &'a RcuGuard) -> &'a BufferConfig {
         let buf: &'a RcuMutex<Buffer> = &self.buf;
         start_proj!(move buf);
-        //------------------- local binding introduced here
-        // Here we use the special projections set up for `Mutex` with fields of type `Rcu<T>`.
-        let cfg: &Rcu<Box<BufferConfig>> = p!(@buf->cfg);
+        let cfg: &Rcu<Box<BufferConfig>> = p!(@move buf->cfg);
         cfg.read(rcu_guard)
-        //^^^^^^^^^^^^^^^^^ returns a value referencing data owned by the current function
     }
-     */
 
     fn set_buffer_config(&self, flush_sensitivity: u8) {
         // Our `Mutex` pins the value.

@@ -185,7 +185,6 @@ fn checker(
     fields: &FieldsNamed,
 ) -> TokenStream {
     let proj = format_ident!("__Proj");
-    let storage = format_ident!("__Storage");
     let mut generics = generics.clone();
     generics.lt_token.get_or_insert_default();
     generics.gt_token.get_or_insert_default();
@@ -196,10 +195,7 @@ fn checker(
         0,
         parse_quote!(#proj: #compat::ProjectableExt<Inner = #ident #ident_ty_gen>),
     );
-    let (checker_impl_gen, _, _) = generics.split_for_impl();
-    let mut storage_generics = generics.clone();
-    storage_generics.params.insert(0, parse_quote!(#storage));
-    let field_name = fields.named.iter().map(|f| &f.ident).collect::<Vec<_>>();
+    let (checker_impl_gen, checker_ty_gen, _) = generics.split_for_impl();
     let fields = fields.named.iter().map(
         |Field {
              vis,
@@ -211,77 +207,19 @@ fn checker(
             }
         },
     );
-    let checker_lt = quote!('___checker);
-    let (_, storage_ty_gen, _) = storage_generics.split_for_impl();
-    let mut val_generics = generics.clone();
-    val_generics.params.insert(0, parse_quote!(#checker_lt));
-    let (val_impl_gen, _, _) = val_generics.split_for_impl();
-    let storage_ty_gen = storage_ty_gen.into_token_stream();
-    let ref_ty_gen: TokenStream = storage_ty_gen
-        .clone()
-        .into_iter()
-        .map(|tt| {
-            if matches!(&tt, TokenTree::Ident(i) if i == &storage) {
-                quote!(#compat::RawProjectedRef<#checker_lt, #proj, #ident #ident_ty_gen>)
-            } else {
-                quote!(#tt)
-            }
-        })
-        .collect();
-    let val_ty_gen: TokenStream = storage_ty_gen
-        .into_iter()
-        .map(|tt| {
-            if matches!(&tt, TokenTree::Ident(i) if i == &storage) {
-                quote!(#compat::RawProjectedVal<#proj, #ident #ident_ty_gen>)
-            } else {
-                quote!(#tt)
-            }
-        })
-        .collect();
     quote! {
-        pub struct Checker #storage_generics {
+        pub struct Checker #generics {
             #(#fields,)*
-            pub ___projection_checker_raw: #storage,
         }
 
-        unsafe impl #val_impl_gen #compat::ProjectionRefChecker<#checker_lt> for Checker #ref_ty_gen {
+        unsafe impl #checker_impl_gen #compat::ProjectionChecker for Checker #checker_ty_gen {
             type Proj = #proj;
-
-            unsafe fn __create(
-                proj: #compat::RawProjectedRef<
-                    #checker_lt,
-                    Self::Proj,
-                    <Self::Proj as #core_::ops::Projectable>::Inner,
-                >,
-            ) -> Self {
-                Self {
-                    #(#field_name: unsafe { #compat::ProjectedField::__new() },)*
-                    ___projection_checker_raw: proj,
-                }
-            }
-        }
-
-        unsafe impl #checker_impl_gen #compat::ProjectionValChecker for Checker #val_ty_gen {
-            type Proj = #proj;
-
-            unsafe fn __create(
-                proj: #compat::RawProjectedVal<
-                    Self::Proj,
-                    <Self::Proj as #core_::ops::Projectable>::Inner,
-                >,
-            ) -> Self {
-                Self {
-                    #(#field_name: unsafe { #compat::ProjectedField::__new() },)*
-                    ___projection_checker_raw: proj,
-                }
-            }
         }
 
         unsafe impl #checker_impl_gen #compat::CheckedProject<#proj> for #ident #ident_ty_gen
             #whr
         {
-            type RefChecker<#checker_lt> = Checker #ref_ty_gen;
-            type ValChecker = Checker #val_ty_gen;
+            type Checker = Checker #checker_ty_gen;
         }
     }
 }
