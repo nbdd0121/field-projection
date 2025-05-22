@@ -72,14 +72,14 @@ pub fn expand(input: Input) -> Result<TokenStream> {
         ..
     } = input;
     let compat = quote!(::field_projection::compat);
-    let project = match &mutability {
-        Some(_) => quote!(project_mut),
-        None => quote!(project),
+    let (project, access) = match &mutability {
+        Some(_) => (quote!(project_mut), quote!(access_mut)),
+        None => (quote!(project), quote!(access)),
     };
     Ok(quote_spanned! {span=>
         match (
             &#mutability #base.#field,
-            #compat::RawProjected::access(&#base.___projection_checker_raw),
+            #compat::RawProjected::#access(&#mutability #base.___projection_checker_raw),
         ) {
             (this, raw) => {
                 #compat::ProjectedField::safety_check(&*this).check();

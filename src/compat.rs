@@ -1,6 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 
-use core::{cell::UnsafeCell, marker::PhantomData};
+use core::marker::PhantomData;
 
 use crate::{
     marker::UnalignedField,
@@ -92,7 +92,7 @@ where
 
     pub unsafe fn project_mut<'a>(
         self: &'a mut ProjectedField<P, F>,
-        raw: RawProjectedRef<P>,
+        raw: RawProjectedMut<P>,
     ) -> <P as ProjectMut<F>>::OutputMut<'a>
     where
         P: ProjectMut<F>,
@@ -101,19 +101,25 @@ where
     }
 }
 
-pub struct RawProjected<T, U: ?Sized>(UnsafeCell<T>, PhantomData<U>);
+pub struct RawProjected<T, U: ?Sized>(T, PhantomData<U>);
 
 impl<T, U: ?Sized> RawProjected<T, U> {
     pub unsafe fn __new(value: T) -> Self
     where
         T: Projectable<Inner = U>,
     {
-        Self(UnsafeCell::new(value), PhantomData)
+        Self(value, PhantomData)
     }
 
-    pub fn access(&self) -> RawProjectedRef<T> {
-        RawProjectedRef(self.0.get())
+    pub fn access(&self) -> RawProjectedRef<'_, T> {
+        RawProjectedRef(&self.0, PhantomData)
+    }
+
+    pub fn access_mut(&mut self) -> RawProjectedMut<'_, T> {
+        RawProjectedMut(&mut self.0, PhantomData)
     }
 }
 
-pub struct RawProjectedRef<T>(*mut T);
+pub struct RawProjectedRef<'a, T>(*const T, PhantomData<&'a T>);
+
+pub struct RawProjectedMut<'a, T>(*mut T, PhantomData<&'a mut T>);
