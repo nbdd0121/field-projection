@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
-use syn::{Expr, Result, Token, parse::Parse};
+use syn::{Result, Token, parse::Parse};
 
 use crate::IdentOrSelf;
 

@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote, quote_spanned};
 use syn::{Member, Result, Token, parse::Parse, spanned::Spanned};
 
-use crate::{IdentOrSelf, start::ProjKind};
+use crate::IdentOrSelf;
 
 pub struct Input {
     at: Token![@],
