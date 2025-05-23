@@ -2,7 +2,7 @@ impl<T> Projectable for *const T {
     type Inner = T;
 }
 
-impl<T, F> Project<F> for *const T
+unsafe impl<T, F> Project<F> for *const T
 where
     F: UnalignedField<Base = T>,
     F::Type: Sized,
@@ -25,7 +25,7 @@ impl<T> Projectable for *mut T {
     type Inner = T;
 }
 
-impl<T, F> Project<F> for *mut T
+unsafe impl<T, F> Project<F> for *mut T
 where
     F: UnalignedField<Base = T>,
     F::Type: Sized,

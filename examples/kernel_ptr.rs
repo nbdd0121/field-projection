@@ -26,7 +26,7 @@ unsafe impl<'a, T: 'a> ProjectableExt for Ptr<'a, T> {
     type Safety = Safe;
 }
 
-impl<'a, T, F> Project<F> for Ptr<'a, T>
+unsafe impl<'a, T, F> Project<F> for Ptr<'a, T>
 where
     T: 'a,
     F: Field<Base = T>,

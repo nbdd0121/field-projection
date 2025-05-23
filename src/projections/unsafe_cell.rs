@@ -4,7 +4,7 @@ impl<T> Projectable for &UnsafeCell<T> {
     type Inner = T;
 }
 
-impl<'a, T, F> Project<F> for &'a UnsafeCell<T>
+unsafe impl<'a, T, F> Project<F> for &'a UnsafeCell<T>
 where
     F: Field<Base = T>,
     F::Type: 'a + Sized,

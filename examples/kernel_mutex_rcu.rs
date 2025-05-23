@@ -97,7 +97,7 @@ mod rcu {
         type Safety = Safe;
     }
 
-    impl<'a, T, U, F> Project<F> for &'a RcuMutex<T>
+    unsafe impl<'a, T, U, F> Project<F> for &'a RcuMutex<T>
     where
         F: UnalignedField<Base = T, Type = Rcu<U>>,
         U: 'a,
@@ -143,7 +143,7 @@ struct MyDriver {
 
 impl MyDriver {
     fn flush_sensitivity<'a>(&'a self, rcu_guard: &'a RcuGuard) -> u8 {
-        let buf = &self.buf;
+        let buf: &'a RcuMutex<Buffer> = &self.buf;
         start_proj!(buf);
         // Here we use the special projections set up for `Mutex` with fields of type `Rcu<T>`.
         let cfg: &Rcu<Box<BufferConfig>> = p!(@buf->cfg);
@@ -158,14 +158,14 @@ impl MyDriver {
     }
 
     fn set_buffer_config(&self, flush_sensitivity: u8) {
-        // Our `Mutex` pins the value.
+        // `RcuMutex` pins the value.
         let mut guard: Pin<RcuMutexGuard<'_, Buffer>> = self.buf.lock();
-        let mut buf = guard.as_mut();
+        let mut buf: Pin<&mut Buffer> = guard.as_mut();
         start_proj!(mut buf);
         // We can use pin-projections since we marked `cfg` as `#[pin]`
         let cfg: Pin<&mut Rcu<Box<BufferConfig>>> = p!(@mut buf->cfg);
         cfg.set(Box::new(BufferConfig { flush_sensitivity }));
-        // ^^ this returns an `Old<Box<BufferConfig>>` and runs `synchronize_rcu` on drop.
+        //  ^^^ this returns an `Old<Box<BufferConfig>>` and runs `synchronize_rcu` on drop.
     }
 }
 

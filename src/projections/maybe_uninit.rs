@@ -6,7 +6,7 @@ impl<T> Projectable for &mut MaybeUninit<T> {
 
 unsafe impl<T> SafeProject for &mut MaybeUninit<T> {}
 
-impl<'a, T, F> ProjectMut<F> for &'a mut MaybeUninit<T>
+unsafe impl<'a, T, F> ProjectMut<F> for &'a mut MaybeUninit<T>
 where
     F: Field<Base = T>,
     F::Type: Sized + 'a,
