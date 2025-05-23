@@ -1,4 +1,4 @@
-use std::{pin::Pin, task::Poll};
+use std::{marker::PhantomPinned, pin::Pin, task::Poll};
 
 use field_projection::compat::{HasFields, p, start_proj};
 
@@ -10,6 +10,8 @@ struct FairRaceFuture<F1, F2> {
     f1: F1,
     #[pin]
     f2: F2,
+    #[pin]
+    _phantom: PhantomPinned,
 }
 
 impl<F1, F2> Future for FairRaceFuture<F1, F2>
