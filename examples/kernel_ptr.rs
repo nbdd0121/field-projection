@@ -33,7 +33,7 @@ where
     F::Type: 'a + Sized,
 {
     type Output<'b>
-        = Ptr<'a, F::Type>
+        = Ptr<'b, F::Type>
     where
         Self: 'b;
 
