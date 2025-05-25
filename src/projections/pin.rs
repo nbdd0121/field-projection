@@ -4,9 +4,11 @@ impl<T> Projectable for Pin<&mut T> {
     type Inner = T;
 }
 
+// SAFETY: no additional safety requirements on `Project[Mut]::project[_mut]`.
 unsafe impl<T> SafeProject for Pin<&mut T> {}
 
-unsafe impl<'a, T, F> Project<F> for Pin<&'a mut T>
+// No additional safety requirements for `project_mut`.
+impl<'a, T, F> Project<F> for Pin<&'a mut T>
 where
     F: PinableField<Base = T> + Field<Base = T>,
     F::Type: Sized + 'a,
@@ -26,7 +28,8 @@ where
     }
 }
 
-unsafe impl<'a, T, F> ProjectMut<F> for Pin<&'a mut T>
+// No additional safety requirements for `project_mut`.
+impl<'a, T, F> ProjectMut<F> for Pin<&'a mut T>
 where
     F: PinableField<Base = T> + Field<Base = T>,
     F::Type: Sized + 'a,

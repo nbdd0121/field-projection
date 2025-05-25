@@ -31,7 +31,7 @@ unsafe impl<T: ?Sized> ProjectableExt for CppMutRef<T> {
     type Safety = Safe;
 }
 
-unsafe impl<T, F> ProjectMut<F> for CppMutRef<T>
+impl<T, F> ProjectMut<F> for CppMutRef<T>
 where
     F: Field<Base = T>,
     F::Type: Sized,

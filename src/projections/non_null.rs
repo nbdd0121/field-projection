@@ -4,7 +4,10 @@ impl<T: ?Sized> Projectable for NonNull<T> {
     type Inner = T;
 }
 
-unsafe impl<T, F> Project<F> for NonNull<T>
+// Additional safety requirements for `project`:
+// * The pointer pointed at by `this` must point to an allocated object at least as large as
+//   `size_of::<T>()`.
+impl<T, F> Project<F> for NonNull<T>
 where
     F: UnalignedField<Base = T>,
     F::Type: Sized,

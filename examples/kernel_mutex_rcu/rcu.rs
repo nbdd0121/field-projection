@@ -90,7 +90,7 @@ unsafe impl<T> ProjectableExt for &RcuMutex<T> {
     type Safety = Safe;
 }
 
-unsafe impl<'a, T, U, F> Project<F> for &'a RcuMutex<T>
+impl<'a, T, U, F> Project<F> for &'a RcuMutex<T>
 where
     F: UnalignedField<Base = T, Type = Rcu<U>>,
     U: 'a,

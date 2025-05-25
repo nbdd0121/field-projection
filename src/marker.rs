@@ -1,4 +1,4 @@
-/// A field of a `struct`, `union` or tuple.
+/// Type representing a field of a `struct`, `union` or tuple.
 ///
 /// # Safety
 ///
@@ -15,7 +15,7 @@ pub unsafe trait UnalignedField: Sized {
     const OFFSET: usize;
 }
 
-/// An aligned field of a `struct`, `union` or tuple.
+/// Type representing an aligned field of a `struct`, `union` or tuple.
 ///
 /// # Safety
 ///
@@ -23,7 +23,7 @@ pub unsafe trait UnalignedField: Sized {
 /// `Self::Type` is well-aligned.
 pub unsafe trait Field: UnalignedField {}
 
-/// A field of a `struct`, `union` or tuple with structural pinning information.
+/// Type representing a field of a `struct`, `union` or tuple with structural pinning information.
 ///
 /// # Safety
 ///

@@ -4,9 +4,11 @@ impl<T> Projectable for &mut MaybeUninit<T> {
     type Inner = T;
 }
 
+// SAFETY: no additional safety requirements on `Project[Mut]::project[_mut]`.
 unsafe impl<T> SafeProject for &mut MaybeUninit<T> {}
 
-unsafe impl<'a, T, F> ProjectMut<F> for &'a mut MaybeUninit<T>
+// No additional safety requirements for `project_mut`.
+impl<'a, T, F> ProjectMut<F> for &'a mut MaybeUninit<T>
 where
     F: Field<Base = T>,
     F::Type: Sized + 'a,

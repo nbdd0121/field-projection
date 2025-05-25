@@ -3,30 +3,30 @@ use crate::{
     marker::{Field, PinableField, UnalignedField},
 };
 
-/// Type supporting projections.
+/// Type supporting field projections.
 ///
-/// The exact kind of projection is governed by [`Project`] and [`ProjectMut`]. This trait only
-/// gives the compiler access to the `Self::Inner` type which is the type containing the projected
-/// fields. So given an expression `base` of type `Self`, then the `field` ident in the expressions
-/// `@base->field` and `@mut base->field` refer to a field of the type `Self::Inner`.
+/// The exact kind of field projection is governed by [`Project`] and [`ProjectMut`]. This trait
+/// only gives the compiler access to the `Self::Inner` type which is the type containing the
+/// potentially projectable fields. So given an expression `base` of type `Self`, then the `field`
+/// ident in the expressions `@base->field` and `@mut base->field` refer to a field of the type
+/// `Self::Inner`.
+///
+/// If the projection `@base->field` is available still depends on weather `Self` implements
+/// `Project<field_of!(Self::Inner, field)>`.
 pub trait Projectable: Sized {
     type Inner: ?Sized;
 }
 
-/// Marks project operations as safe.
+/// Marks project operations on `Self` as safe.
 ///
 /// # Safety
 ///
-/// * The `@base->field` and `@mut base->field` operations implemented by the [`Project`] and
-///   [`ProjectMut`] traits must not have additional safety requirements.
+/// * The [`Project::project`] and [`ProjectMut::project_mut`] functions implemented for `Self`
+///   must not have additional safety requirements.
 pub unsafe trait SafeProject: Projectable {}
 
 /// Shared projection operation `@base->field`.
-///
-/// # Safety
-///
-///
-pub unsafe trait Project<F>: Projectable
+pub trait Project<F>: Projectable
 where
     F: UnalignedField<Base = Self::Inner>,
 {
@@ -39,21 +39,19 @@ where
     ///
     /// # Safety
     ///
-    /// * `this` must be a dereferenceable pointer pointing at a valid value of `Self`.
+    /// * `this` must be a valid pointer pointing at a valid value of `Self`.
     /// * for the duration of `'a`, the value at `this` is only used by other projection
     ///   operations.
     /// * for the duration of `'a`, the value at `this` is not mutably projected with `F`.
+    /// * Implementers may impose additional safety requirements. These must be documented on the
+    ///   implementation of this trait.
     unsafe fn project<'a>(this: *const Self) -> Self::Output<'a>
     where
         Self: 'a;
 }
 
 /// Exclusive projection operation `@mut base->field`.
-///
-/// # Safety
-///
-///
-pub unsafe trait ProjectMut<F>: Projectable
+pub trait ProjectMut<F>: Projectable
 where
     F: UnalignedField<Base = Self::Inner>,
 {
@@ -66,9 +64,11 @@ where
     ///
     /// # Safety
     ///
-    /// * `this` must be a dereferenceable pointer pointing at a valid value of `Self`.
-    /// * for the duration of `'a`, the value at `this` is only used by other projection
+    /// * `this` must be a valid pointer pointing at a valid value of `Self`.
+    /// * For the duration of `'a`, the value at `this` is only used by other projection
     ///   operations for fields other than `F`.
+    /// * Implementers may impose additional safety requirements. These must be documented on the
+    ///   implementation of this trait.
     unsafe fn project_mut<'a>(this: *mut Self) -> Self::OutputMut<'a>
     where
         Self: 'a;

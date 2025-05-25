@@ -4,7 +4,8 @@ impl<T> Projectable for &UnsafeCell<T> {
     type Inner = T;
 }
 
-unsafe impl<'a, T, F> Project<F> for &'a UnsafeCell<T>
+// No additional safety requirements for `project_mut`.
+impl<'a, T, F> Project<F> for &'a UnsafeCell<T>
 where
     F: Field<Base = T>,
     F::Type: 'a + Sized,
