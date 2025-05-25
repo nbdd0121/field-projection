@@ -50,4 +50,25 @@ where
     }
 }
 
+impl<'a, T: 'a> Ptr<'a, T> {
+    /// Turn this pointer-to-a-field into a pointer to the entire container.
+    ///
+    /// # Safety
+    ///
+    /// * `self` points at a `T` that is contained as the field `F` inside of a `U`.
+    /// * `self` is derived from a pointer that originally pointed at the entire `U` that contains
+    ///   this `T` as the field `F`.
+    pub unsafe fn container_of<U, F>(self) -> Ptr<'a, U>
+    where
+        U: 'a,
+        F: Field<Base = U, Type = T>,
+    {
+        let inner = unsafe { self.inner.byte_sub(F::OFFSET) };
+        Ptr {
+            inner: inner.cast(),
+            _phantom: PhantomData,
+        }
+    }
+}
+
 fn main() {}
