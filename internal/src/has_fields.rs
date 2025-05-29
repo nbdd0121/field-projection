@@ -120,7 +120,7 @@ pub fn derive(
                     false => (quote!(&#lt mut #ty), quote!(#r)),
                 };
                 quote! {
-                    unsafe impl #impl_gen #core_::marker::PinableField
+                    unsafe impl #impl_gen #core_::marker::PinnableField
                     for #field_info #info_ty_gen
                         #whr
                     {
