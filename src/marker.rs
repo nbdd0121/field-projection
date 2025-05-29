@@ -29,7 +29,7 @@ pub unsafe trait Field: UnalignedField {}
 ///
 /// `Self::Projected<'a>` either is `Pin<&'a mut Self::Type>` or `&'a mut Self::Type`. In the first
 /// case the field is structurally pinned.
-pub unsafe trait PinableField: UnalignedField {
+pub unsafe trait PinnableField: UnalignedField {
     /// The pin-projected type of `Self`.
     ///
     /// Either `Pin<&'a mut Self::Type>` or `&'a mut Self::Type`.
