@@ -11,8 +11,8 @@ use crate::{
 /// ident in the expressions `@base->field` and `@mut base->field` refer to a field of the type
 /// `Self::Inner`.
 ///
-/// If the projection `@base->field` is available still depends on whether `Self` implements
-/// `Project<field_of!(Self::Inner, field)>`.
+/// If the projection `@[mut] base->field` is available still depends on whether `Self` implements
+/// `Project[Mut]<field_of!(Self::Inner, field)>`.
 pub trait Projectable: Sized {
     type Inner: ?Sized;
 }
