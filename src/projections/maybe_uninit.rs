@@ -25,7 +25,7 @@ where
     where
         Self: 'b;
 
-    unsafe fn project<'b>(this: *const Self) -> Self::Output<'a>
+    unsafe fn project<'b>(this: *const Self) -> Self::Output<'b>
     where
         Self: 'b,
     {
@@ -45,7 +45,7 @@ where
     where
         Self: 'b;
 
-    unsafe fn project<'b>(this: *const Self) -> Self::Output<'a>
+    unsafe fn project<'b>(this: *const Self) -> Self::Output<'b>
     where
         Self: 'b,
     {
@@ -65,7 +65,7 @@ where
     where
         Self: 'b;
 
-    unsafe fn project_mut<'b>(this: *mut Self) -> Self::OutputMut<'a>
+    unsafe fn project_mut<'b>(this: *mut Self) -> Self::OutputMut<'b>
     where
         Self: 'b,
     {
