@@ -7,7 +7,7 @@ impl<T: ?Sized> Projectable for NonNull<T> {
 // Additional safety requirements for `project`:
 // * The pointer pointed at by `this` must point to an allocated object at least as large as
 //   `size_of::<T>()`.
-impl<T, F> Project<F> for NonNull<T>
+impl<T: ?Sized, F> Project<F> for NonNull<T>
 where
     F: UnalignedField<Base = T>,
     F::Type: Sized,
@@ -27,6 +27,6 @@ where
 
 // Compat
 
-unsafe impl<T> compat::ProjectableExt for NonNull<T> {
+unsafe impl<T: ?Sized> compat::ProjectableExt for NonNull<T> {
     type Safety = compat::Unsafe;
 }
