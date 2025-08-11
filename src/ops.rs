@@ -78,4 +78,5 @@ include!("./projections/maybe_uninit.rs");
 include!("./projections/non_null.rs");
 include!("./projections/pin.rs");
 include!("./projections/raw_ptr.rs");
+include!("./projections/ref_cell.rs");
 include!("./projections/unsafe_cell.rs");
