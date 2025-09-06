@@ -1,3 +1,6 @@
+#![allow(incomplete_features)]
+#![feature(field_projections)]
+
 use field_projection::compat::{HasFields, start_proj};
 
 #[derive(HasFields)]

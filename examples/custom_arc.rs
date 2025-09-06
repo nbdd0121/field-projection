@@ -1,3 +1,6 @@
+#![allow(incomplete_features)]
+#![feature(field_projections)]
+
 use std::{ops::Deref, ptr::NonNull, sync::atomic::AtomicUsize};
 
 use field_projection::compat::{HasFields, p, start_proj};

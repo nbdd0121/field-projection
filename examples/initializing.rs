@@ -1,4 +1,6 @@
 #![feature(maybe_uninit_fill, maybe_uninit_as_bytes)]
+#![allow(incomplete_features)]
+#![feature(field_projections)]
 #![allow(dead_code)]
 
 use std::mem::MaybeUninit;

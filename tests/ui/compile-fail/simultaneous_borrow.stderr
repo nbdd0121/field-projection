@@ -1,7 +1,7 @@
 error[E0499]: cannot borrow value as mutable more than once at a time
-  --> tests/ui/compile-fail/simultaneous_borrow.rs:21:32
+  --> tests/ui/compile-fail/simultaneous_borrow.rs:24:32
    |
-21 |         p!(@mut self->bar).bar(p!(@mut self->bar));
+24 |         p!(@mut self->bar).bar(p!(@mut self->bar));
    |         ------------------ --- ^^^^^^^^^^^^^^^^^^ second mutable borrow occurs here
    |         |                  |
    |         |                  first borrow later used by call

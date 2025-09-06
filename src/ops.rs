@@ -1,7 +1,6 @@
-use crate::{
-    compat,
-    marker::{Field, PinnableField, UnalignedField},
-};
+use crate::{compat, marker::PinnableField};
+
+use core::field::{Field, UnalignedField};
 
 /// Type supporting field projections.
 ///

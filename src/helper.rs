@@ -1,6 +1,6 @@
 use core::ptr;
 
-use crate::marker::Field;
+use core::field::Field;
 
 pub fn project_ref<F: Field>(r: &F::Base) -> &F::Type
 where

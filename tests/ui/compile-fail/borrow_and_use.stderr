@@ -1,11 +1,11 @@
 error[E0502]: cannot borrow value as mutable because it is also borrowed as immutable
-  --> tests/ui/compile-fail/borrow_and_use.rs:23:17
+  --> tests/ui/compile-fail/borrow_and_use.rs:26:17
    |
-22 |         let bar = p!(@self->bar);
+25 |         let bar = p!(@self->bar);
    |                   -------------- immutable borrow occurs here
-23 |         let _ = p!(@mut self->bar);
+26 |         let _ = p!(@mut self->bar);
    |                 ^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
-24 |         println!("{bar:?}");
-   |                   ------- immutable borrow later used here
+27 |         println!("{bar:?}");
+   |                    --- immutable borrow later used here
    |
    = note: this error originates in the macro `p` (in Nightly builds, run with -Z macro-backtrace for more info)

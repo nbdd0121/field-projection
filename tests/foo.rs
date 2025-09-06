@@ -1,3 +1,6 @@
+#![allow(incomplete_features)]
+#![feature(field_projections)]
+
 use field_projection::compat::{HasFields, p, start_proj};
 
 use core::mem::MaybeUninit;

@@ -37,15 +37,7 @@ pub fn derive(
         .collect();
     let emit_pinned_impls = fields_attrs.contains(&FieldAttr::WithPinned);
 
-    let mut info_generics = generics.clone();
-    info_generics.lt_token.get_or_insert_default();
-    info_generics.gt_token.get_or_insert_default();
-    // TODO: proper index
-    info_generics
-        .params
-        .insert(0, parse_quote!(const #field_name: ::core::primitive::u64));
     let (impl_gen, ty_gen, whr) = generics.split_for_impl();
-    let (_, info_ty_gen, _) = info_generics.split_for_impl();
     let Data::Struct(DataStruct { fields, .. }) = &data else {
         return Err(Error::new(
             match &data {
@@ -87,22 +79,6 @@ pub fn derive(
              ty,
              ..
          }| {
-            let info_ty_gen = info_ty_gen
-                .to_token_stream()
-                .into_iter()
-                .map(|mut tok| {
-                    match &mut tok {
-                        TokenTree::Ident(i) if i == &field_name => {
-                            tok = TokenTree::Group(Group::new(
-                                Delimiter::Brace,
-                                quote!(#compat::hash_field_name(::core::stringify!(#field))),
-                            ));
-                        }
-                        _ => {}
-                    }
-                    tok
-                })
-                .collect::<TokenStream>();
             let pinned_impl = if emit_pinned_impls {
                 let lt = quote!('__a);
                 let r = format_ident!("__r");
@@ -121,7 +97,7 @@ pub fn derive(
                 };
                 quote! {
                     unsafe impl #impl_gen #core_::marker::PinnableField
-                    for #field_info #info_ty_gen
+                    for ::core::field::field_of!(#ident #ty_gen, #field)
                         #whr
                     {
                         type Projected<#lt> = #projected
@@ -136,21 +112,6 @@ pub fn derive(
                 quote!()
             };
             quote! {
-                unsafe impl #impl_gen #core_::marker::UnalignedField
-                for #field_info #info_ty_gen
-                    #whr
-                {
-                    type Base = #ident #ty_gen;
-                    type Type = #ty;
-                    const OFFSET: usize = ::core::mem::offset_of!(#ident #ty_gen, #field);
-                }
-                // SAFETY: we checked that the struct is not `repr(packed)`.
-                unsafe impl #impl_gen #core_::marker::Field
-                for #field_info #info_ty_gen
-                    #whr
-                {
-                }
-
                 #pinned_impl
             }
         },
@@ -158,16 +119,10 @@ pub fn derive(
     let checker = checker(&ident, &generics, &compat, &core_, fields);
     Ok(quote! {
         const _: () = {
-            #vis struct #field_info #info_generics {
-                _phantom: ::core::marker::PhantomData<#ident #ty_gen>,
-            }
 
             unsafe impl #impl_gen #compat::HasFields for #ident #ty_gen
                 #whr
             {
-                type FieldInfo<
-                    const #field_name: ::core::primitive::u64,
-                > = #field_info #info_ty_gen;
             }
 
             #(#field_impls)*

@@ -1,8 +1,8 @@
+use std::field::Field;
 use std::ops::Receiver;
 
 use field_projection::{
     compat::{ProjectableExt, Safe},
-    marker::Field,
     ops::{Project, ProjectMut, Projectable, SafeProject},
 };
 

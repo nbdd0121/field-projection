@@ -1,3 +1,6 @@
+#![allow(incomplete_features)]
+#![feature(field_projections)]
+
 use std::{marker::PhantomData, ptr::NonNull};
 
 use field_projection::compat::{HasFields, p, start_proj};

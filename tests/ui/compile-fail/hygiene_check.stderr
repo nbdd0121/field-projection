@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile-fail/hygiene_check.rs:20:17
+  --> tests/ui/compile-fail/hygiene_check.rs:23:17
    |
-20 |     let _: () = ___projections_raw_ptr_for_foo;
+23 |     let _: () = ___projections_raw_ptr_for_foo;
    |            --   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `()`, found `*mut Pin<&mut Foo>`
    |            |
    |            expected due to this
@@ -10,9 +10,9 @@ error[E0308]: mismatched types
             found raw pointer `*mut Pin<&mut Foo>`
 
 error[E0308]: mismatched types
-  --> tests/ui/compile-fail/hygiene_check.rs:21:17
+  --> tests/ui/compile-fail/hygiene_check.rs:24:17
    |
-21 |     let _: () = ___projections_checker_for_foo;
+24 |     let _: () = ___projections_checker_for_foo;
    |            --   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `()`, found `&mut Checker<Pin<&mut Foo>>`
    |            |
    |            expected due to this

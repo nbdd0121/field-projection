@@ -1,9 +1,10 @@
-use core::ptr::NonNull;
-use std::marker::PhantomData;
+#![allow(incomplete_features)]
+#![feature(field_projections)]
+
+use core::{field::Field, marker::PhantomData, ptr::NonNull};
 
 use field_projection::{
     compat::{HasFields, ProjectableExt, Safe, p, start_proj},
-    marker::Field,
     ops::{Project, Projectable, SafeProject},
 };
 

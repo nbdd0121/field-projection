@@ -1,7 +1,10 @@
+#![allow(incomplete_features)]
+#![feature(field_projections)]
 #![feature(allocator_api)]
 
 use std::{
     alloc::{Allocator, Global, Layout},
+    field::Field,
     mem,
     ops::Deref,
     ptr::{NonNull, drop_in_place},
@@ -10,7 +13,6 @@ use std::{
 
 use field_projection::{
     compat,
-    marker::Field,
     ops::{Project, Projectable, SafeProject},
 };
 use field_projection_internal::{HasFields, p, start_proj};

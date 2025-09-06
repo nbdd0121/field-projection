@@ -1,12 +1,12 @@
 use std::{
     cell::UnsafeCell,
+    field::UnalignedField,
     ops::{Deref, DerefMut},
     pin::{Pin, UnsafePinned},
 };
 
 use field_projection::{
     compat::{ProjectableExt, Safe},
-    marker::UnalignedField,
     ops::{Project, Projectable, SafeProject},
 };
 

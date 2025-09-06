@@ -1,3 +1,5 @@
+#![allow(incomplete_features)]
+#![feature(field_projections)]
 #![allow(clippy::disallowed_names)]
 
 use std::mem::MaybeUninit;

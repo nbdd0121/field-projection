@@ -1,7 +1,7 @@
-error[E0599]: no function or associated item named `project_move_mut` found for struct `ProjectedField` in the current scope
-  --> tests/ui/compile-fail/pre_rfc.rs:68:5
+error[E0599]: no function or associated item named `project_move_mut` found for struct `ProjectedField<P, F>` in the current scope
+  --> tests/ui/compile-fail/pre_rfc.rs:70:5
    |
-68 |     p!(@move mut foo->bar)
+70 |     p!(@move mut foo->bar)
    |     ^^^^^^^^^^^^^^^^^^^^^^ function or associated item not found in `ProjectedField<_, _>`
    |
 note: if you're trying to build a new `ProjectedField<_, _>`, consider using `ProjectedField::<P, F>::__new` which returns `ProjectedField<_, _>`
@@ -9,54 +9,47 @@ note: if you're trying to build a new `ProjectedField<_, _>`, consider using `Pr
    |
    |     pub unsafe fn __new() -> Self {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-help: there is a method `project_move` with a similar name, but with different arguments
-  --> src/compat.rs
-   |
-   | /     pub unsafe fn project_move<'a>(self, raw: *const P) -> <P as Project<F>>::Output<'a>
-   | |     where
-   | |         P: Project<F>,
-   | |______________________^
    = note: this error originates in the macro `p` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: unused variable: `b`
-  --> tests/ui/compile-fail/pre_rfc.rs:38:9
+  --> tests/ui/compile-fail/pre_rfc.rs:40:9
    |
-38 |     let b = p!(@mut foo->field);
+40 |     let b = p!(@mut foo->field);
    |         ^ help: if this is intentional, prefix it with an underscore: `_b`
    |
-   = note: `#[warn(unused_variables)]` on by default
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
 
 error[E0499]: cannot borrow value as mutable more than once at a time
-  --> tests/ui/compile-fail/pre_rfc.rs:38:13
+  --> tests/ui/compile-fail/pre_rfc.rs:40:13
    |
-36 |     let a = p!(@mut foo->field);
+38 |     let a = p!(@mut foo->field);
    |             ------------------- first mutable borrow occurs here
-37 |     //      ------------------- first exclusive projection occurs here
-38 |     let b = p!(@mut foo->field);
+39 |     //      ------------------- first exclusive projection occurs here
+40 |     let b = p!(@mut foo->field);
    |             ^^^^^^^^^^^^^^^^^^^ second mutable borrow occurs here
-39 |     //      ^^^^^^^^^^^^^^^^^^^ second exclusive projection occurs here
-40 |     MaybeUninit::write(a, 42);
+41 |     //      ^^^^^^^^^^^^^^^^^^^ second exclusive projection occurs here
+42 |     MaybeUninit::write(a, 42);
    |                        - first borrow later used here
    |
    = note: this error originates in the macro `p` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0502]: cannot borrow `*foo` as mutable because it is also borrowed as immutable
-  --> tests/ui/compile-fail/pre_rfc.rs:53:5
+  --> tests/ui/compile-fail/pre_rfc.rs:55:5
    |
-46 |     start_proj!(foo);
+48 |     start_proj!(foo);
    |     ---------------- immutable borrow occurs here
 ...
-53 |     MaybeUninit::write(foo, value);
+55 |     MaybeUninit::write(foo, value);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
-54 |     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^ projected value used here
-55 |     unsafe { field.assume_init_read() }
+56 |     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^ projected value used here
+57 |     unsafe { field.assume_init_read() }
    |              ----- immutable borrow later used here
 
 error[E0515]: cannot return value referencing function parameter `foo`
-  --> tests/ui/compile-fail/pre_rfc.rs:74:8
+  --> tests/ui/compile-fail/pre_rfc.rs:76:8
    |
-72 |     start_proj!(mut foo);
+74 |     start_proj!(mut foo);
    |     -------------------- `foo` is borrowed here
-73 |     //------------------ `foo` is borrowed here
-74 |     p!(@mut foo->bar)
+75 |     //------------------ `foo` is borrowed here
+76 |     p!(@mut foo->bar)
    |        ^^^^^^^^^^^^^ returns a value referencing data owned by the current function

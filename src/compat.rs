@@ -1,28 +1,19 @@
 #![allow(clippy::missing_safety_doc)]
 
-use core::marker::PhantomData;
+use core::{field::UnalignedField, marker::PhantomData};
 
-use crate::{
-    marker::UnalignedField,
-    ops::{Project, ProjectMut, Projectable, SafeProject},
-};
+use crate::ops::{Project, ProjectMut, Projectable, SafeProject};
 
 pub use ::field_projection_internal::{HasFields, p, start_proj};
 
 #[macro_export]
 macro_rules! field_of {
     ($ty:ty, $field:ident) => {
-        <$ty as $crate::compat::HasFields>::FieldInfo::<
-            { $crate::compat::hash_field_name(::core::stringify!($field)) },
-        >
+        ::core::field::field_of!($ty, $field)
     };
 }
 
-pub unsafe trait HasFields {
-    type FieldInfo<const NAME: u64>;
-}
-
-pub use const_fnv1a_hash::fnv1a_hash_str_64 as hash_field_name;
+pub unsafe trait HasFields {}
 
 pub unsafe trait ProjectableExt: Projectable {
     type Safety: private::Safety<Self>;

@@ -1,27 +1,4 @@
-/// Type representing a field of a `struct`, `union` or tuple.
-///
-/// # Safety
-///
-/// Given a valid value of type `Self::Base`, there exists a valid value of type `Self::Type` at
-/// byte offset `OFFSET`.
-pub unsafe trait UnalignedField: Sized {
-    /// The type of the base where this field exists in.
-    type Base: ?Sized;
-
-    /// The type of the field.
-    type Type: ?Sized;
-
-    /// The offset of the field in bytes.
-    const OFFSET: usize;
-}
-
-/// Type representing an aligned field of a `struct`, `union` or tuple.
-///
-/// # Safety
-///
-/// Given a well-aligned value of type `Self::Base`, the field at `Self::OFFSET` of type
-/// `Self::Type` is well-aligned.
-pub unsafe trait Field: UnalignedField {}
+use core::field::UnalignedField;
 
 /// Type representing a field of a `struct`, `union` or tuple with structural pinning information.
 ///
