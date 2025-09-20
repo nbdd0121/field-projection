@@ -18,7 +18,7 @@ unsafe impl<T> SafeProject for &mut MaybeUninit<T> {}
 impl<'a, T, F> Project<F> for &'a MaybeUninit<T>
 where
     F: Field<Base = T>,
-    F::Type: Sized + 'a,
+    F::Type: 'a,
 {
     type Output<'b>
         = &'b MaybeUninit<F::Type>
@@ -38,7 +38,7 @@ where
 impl<'a, T, F> Project<F> for &'a mut MaybeUninit<T>
 where
     F: Field<Base = T>,
-    F::Type: Sized + 'a,
+    F::Type: 'a,
 {
     type Output<'b>
         = &'b MaybeUninit<F::Type>
@@ -58,7 +58,7 @@ where
 impl<'a, T, F> ProjectMut<F> for &'a mut MaybeUninit<T>
 where
     F: Field<Base = T>,
-    F::Type: Sized + 'a,
+    F::Type: 'a,
 {
     type OutputMut<'b>
         = &'b mut MaybeUninit<F::Type>

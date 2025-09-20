@@ -7,8 +7,7 @@ impl<T> Projectable for *const T {
 //   `size_of::<T>()`.
 impl<T, F> Project<F> for *const T
 where
-    F: UnalignedField<Base = T>,
-    F::Type: Sized,
+    F: Field<Base = T>,
 {
     type Output<'b>
         = *const F::Type
@@ -33,8 +32,7 @@ impl<T> Projectable for *mut T {
 //   `size_of::<T>()`.
 impl<T, F> Project<F> for *mut T
 where
-    F: UnalignedField<Base = T>,
-    F::Type: Sized,
+    F: Field<Base = T>,
 {
     type Output<'b>
         = *mut F::Type

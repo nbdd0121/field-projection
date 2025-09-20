@@ -93,15 +93,13 @@ impl<T: ?Sized> Deref for ArcRef<T> {
     }
 }
 
-impl<T: ?Sized> Projectable for ArcRef<T> {
+impl<T> Projectable for ArcRef<T> {
     type Inner = T;
 }
 
 impl<T, F> Project<F> for ArcRef<T>
 where
-    T: ?Sized,
     F: Field<Base = T>,
-    F::Type: Sized,
 {
     type Output<'a>
         = ArcRef<F::Type>
@@ -121,9 +119,9 @@ where
     }
 }
 
-unsafe impl<T: ?Sized> SafeProject for ArcRef<T> {}
+unsafe impl<T> SafeProject for ArcRef<T> {}
 
-unsafe impl<T: ?Sized> compat::ProjectableExt for ArcRef<T> {
+unsafe impl<T> compat::ProjectableExt for ArcRef<T> {
     type Safety = compat::Safe;
 }
 

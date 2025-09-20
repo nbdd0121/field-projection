@@ -11,7 +11,7 @@ unsafe impl<T> SafeProject for Pin<&mut T> {}
 impl<'a, T, F> Project<F> for Pin<&'a mut T>
 where
     F: PinnableField<Base = T> + Field<Base = T>,
-    F::Type: Sized + 'a,
+    F::Type: 'a,
 {
     type Output<'b>
         = &'b F::Type
@@ -32,7 +32,7 @@ where
 impl<'a, T, F> ProjectMut<F> for Pin<&'a mut T>
 where
     F: PinnableField<Base = T> + Field<Base = T>,
-    F::Type: Sized + 'a,
+    F::Type: 'a,
 {
     type OutputMut<'b>
         = F::Projected<'b>

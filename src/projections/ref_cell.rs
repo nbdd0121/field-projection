@@ -16,7 +16,7 @@ unsafe impl<T> SafeProject for RefMut<'_, T> {}
 impl<'a, T, F> Project<F> for Ref<'a, T>
 where
     F: Field<Base = T>,
-    F::Type: Sized + 'a,
+    F::Type: 'a,
 {
     type Output<'b>
         = Ref<'b, F::Type>
@@ -34,7 +34,7 @@ where
 impl<'a, T, F> ProjectMut<F> for RefMut<'a, T>
 where
     F: Field<Base = T>,
-    F::Type: Sized + 'a,
+    F::Type: 'a,
 {
     type OutputMut<'b>
         = RefMut<'b, F::Type>

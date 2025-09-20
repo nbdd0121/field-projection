@@ -1,6 +1,7 @@
 #![allow(clippy::missing_safety_doc)]
 
-use core::{field::UnalignedField, marker::PhantomData};
+use core::field::Field;
+use core::marker::PhantomData;
 
 use crate::ops::{Project, ProjectMut, Projectable, SafeProject};
 
@@ -74,7 +75,7 @@ pub struct ProjectedField<P, F>(PhantomData<P>, PhantomData<F>);
 impl<P, F> ProjectedField<P, F>
 where
     P: ProjectableExt,
-    F: UnalignedField<Base = P::Inner>,
+    F: Field<Base = P::Inner>,
 {
     pub unsafe fn __new() -> Self {
         Self(PhantomData, PhantomData)

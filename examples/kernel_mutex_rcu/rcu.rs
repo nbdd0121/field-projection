@@ -1,6 +1,6 @@
 use std::{
     cell::UnsafeCell,
-    field::UnalignedField,
+    field::Field,
     ops::{Deref, DerefMut},
     pin::{Pin, UnsafePinned},
 };
@@ -92,7 +92,7 @@ unsafe impl<T> ProjectableExt for &RcuMutex<T> {
 
 impl<'a, T, U, F> Project<F> for &'a RcuMutex<T>
 where
-    F: UnalignedField<Base = T, Type = Rcu<U>>,
+    F: Field<Base = T, Type = Rcu<U>>,
     U: 'a,
 {
     type Output<'b>

@@ -1,6 +1,6 @@
 use crate::{compat, marker::PinnableField};
 
-use core::field::{Field, UnalignedField};
+use core::field::Field;
 
 /// Type supporting field projections.
 ///
@@ -27,7 +27,7 @@ pub unsafe trait SafeProject: Projectable {}
 /// Shared projection operation `@base->field`.
 pub trait Project<F>: Projectable
 where
-    F: UnalignedField<Base = Self::Inner>,
+    F: Field<Base = Self::Inner>,
 {
     /// The output of this projection operation.
     type Output<'a>
@@ -52,7 +52,7 @@ where
 /// Exclusive projection operation `@mut base->field`.
 pub trait ProjectMut<F>: Projectable
 where
-    F: UnalignedField<Base = Self::Inner>,
+    F: Field<Base = Self::Inner>,
 {
     /// The output of this projection operation.
     type OutputMut<'a>

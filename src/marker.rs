@@ -1,4 +1,4 @@
-use core::field::UnalignedField;
+use core::field::Field;
 
 /// Type representing a field of a `struct`, `union` or tuple with structural pinning information.
 ///
@@ -6,7 +6,7 @@ use core::field::UnalignedField;
 ///
 /// `Self::Projected<'a>` either is `Pin<&'a mut Self::Type>` or `&'a mut Self::Type`. In the first
 /// case the field is structurally pinned.
-pub unsafe trait PinnableField: UnalignedField {
+pub unsafe trait PinnableField: Field {
     /// The pin-projected type of `Self`.
     ///
     /// Either `Pin<&'a mut Self::Type>` or `&'a mut Self::Type`.
